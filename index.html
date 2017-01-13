@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Las Cumbres Observatory Global Telescope Network</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="shortcut icon" href="https://cdn.lco.global/mainstyle/img/favicon.ico" type="image/x-icon" />
+
+    <!-- Bootstrap Core CSS -->
+		<link href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css' rel="stylesheet">
+		<link href='https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css' rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href='https://cdn.lco.global/mainstyle/css/affogato-1.0.0.css' rel="stylesheet">
+    <link href='https://cdn.lco.global/mainstyle/css/lco-1.0.0.css' rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
+    <script src="/js/auth.js" type="text/javascript" ></script>
+    <script src="/js/requests.js" type="text/javascript" ></script>
+    <script>
+    var target_list;
+    $(document).ready(function(){
+      $('body').on('click', 'a.target-item', function() {
+          var targetid = $(this).data("objectid");
+          sendRequest(target_list[targetid]);
+      });
+      $('#login-btn').on('click',function(){
+        login($('#email').val(), $('#password').val(), function(result){
+          if(result){
+            $('#login-form').hide();
+            $('#alert-error').hide();
+            $('#logout').show();
+          }else{
+            $('#alert-error').show().find('strong').text('Login Failed');
+          }
+        });
+      });
+    });
+    </script>
+
+</head>
+<body>
+	<!-- Navigation -->
+    <nav class="navbar navbar-inverse head downPage">
+      <div class="container-fluid">
+      	<div class="innerHead">
+	        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+	            <span class="sr-only">Toggle navigation</span>
+	            <span class="icon-bar"></span>
+	            <span class="icon-bar"></span>
+	            <span class="icon-bar"></span>
+	        </button>
+					<div class="navbar-header branding branding-logo">
+						<a href="/" title="LCO homepage" rel="home" class="navbar-brand"><img src="https://cdn.lco.global/mainstyle/img/LCO-logo-web.jpg" alt="Las Cumbres Observatory" /></a>
+					</div>
+					<div class="navbar-header branding">
+						<div id="lco-name">Las Cumbres Observatory</div>
+					</div>
+	        <div id="navbar" class="collapse navbar-collapse headNav">
+
+	          <ul class="nav nav-right navbar-nav">
+							<li class="hidden">
+									<a href="#page-top"></a>
+							</li>
+							<li>
+                <a href="#" data-toggle="modal" data-target="#login-modal">Login</a>
+							</li>
+	          </ul>
+
+				<div class="clearfix"></div>
+	        </div><!--/.nav-collapse -->
+				<div class="clearfix"></div>
+	    </div>
+      </div>
+    </nav>
+	<section>
+		<div class="intro downPage">
+			<div class="container wide">
+				<div class="row no-gutter">
+					<div class="col-md-8 title">
+						<h1>Kiosk</h1>
+					</div>
+					<div class="col-md-4 col-sm-12 imgRotate">
+						<!-- RANDOM IMAGES GO HERE -->
+						<img class="img-responsive" src="http://lcogt.net/files/galleries/astrophotography/.thumbnails/ngc6946_LHargb_flat2_sig.jpg/ngc6946_LHargb_flat2_sig-500x250.jpg">
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+	<section>
+		<div class="container narrow downPage">
+			<div class="row">
+				<div class="col-md-12">
+          <div id="requests-container">
+            <ul></ul>
+          </div>
+				</div>
+			</div>
+		</div>
+	</section>
+	<section>
+		<div class="container wide downPage footer">
+			<hr class="divider" />
+			<div class="row links">
+				<!-- BEGIN FOOTER MENU.  4 ACROSS ON MEDIUM, TWO ACROSS ON SMALL, STACKED ON MOBILE -->
+				<div class="col-md-3 col-sm-6">
+					<ul>
+						<li><a href="#">For Everyone</a></li>
+						   <li><a href="#">About LCO</a></li>
+						   <li><a href="#">Events</a></li>
+						   <li><a href="#">Public Archives</a></li>
+						   <li><a href="#">Observatory Status</a></li>
+						   <li><a href="#">Staff</a></li>
+						   <li><a href="#">Jobs</a></li>
+						   <li><a href="#">Sales</a></li>
+						   <li><a href="#">News</a></li>
+						   <li><a href="#">Contact</a></li>
+						</ul>
+
+				</div>
+				<div class="col-md-3 col-sm-6">
+					<ul>
+						<li><a href="#">Education<span class="edLink"> and Outreach</span></a></li>
+						   <li><a href="#">Activities</a></li>
+						   <li><a href="#">Observing Information</a></li>
+						   <li><a href="#">Latest Observations</a></li>
+						   <li><a href="#">Agent Exoplanet</a></li>
+						   <li><a href="#">SpaceBook</a></li>
+						   <li><a href="#">Star in a Box</a></li>
+						   <li><a href="#">Image Gallery</a></li>
+						   <li><a href="#">Open Source</a></li>
+						</ul>
+				</div>
+				<div class="col-md-3 col-sm-6">
+					<ul>
+						<li><a href="#">For Astronomers</a></li>
+						   <li><a href="#">Operational Status</a></li>
+						   <li><a href="#">Proposal Portal</a></li>
+						   <li><a href="#">Purchase Time</a></li>
+						   <li><a href="#">SSA and Satellite Archives</a></li>
+						   <li><a href="#">Data Archive</a></li>
+						   <li><a href="#">Seminar Series</a></li>
+						   <li><a href="#">Science Staff</a></li>
+						</ul>
+				</div>
+				<div class="col-md-3 col-sm-6">
+					<ul>
+						<li><a href="#">Observing Portal</a></li>
+						   <li><a href="#">Secure Login</a></li>
+						   <li><a href="#">About the Portal</a></li>
+						   <li><a href="#">Request an Account</a></li>
+						</ul>
+				</div>
+				<!-- END FOOTER MENU -->
+			</div>
+			<div class="row social">
+				<ul class="list-inline social-buttons">
+					<li>
+					<a href="http://twitter.com/LCO_Global" alt="Las Cumbres Observatory on Twitter">
+					<span class="fa-stack fa-2x">
+						<i class="fa fa-circle fa-stack-2x"></i>
+						<i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+						</span>
+					</a>
+					</li>
+					<li>
+					<a href="http://facebook.com/lascumbresobservatory" alt="Las Cumbres Observatory on Facebook">
+					<span class="fa-stack fa-2x">
+						<i class="fa fa-circle fa-stack-2x"></i>
+						<i class="fa fa-facebook fa-stack-1x fa-inverse"></i>
+						</span>
+					</a>
+					</li>
+					<li>
+					<a href="http://lco.global/blog/feeds/rss/" alt="Latest news from Las Cumbres Observatory via RSS">
+					<span class="fa-stack fa-2x">
+						<i class="fa fa-circle fa-stack-2x"></i>
+						<i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+						</span>
+					</a>
+					</li>
+					<li>
+					<a href="http://lco.global/news/" alt="Latest news from Las Cumbres Observatory">
+					<span class="fa-stack fa-2x">
+						<i class="fa fa-circle fa-stack-2x"></i>
+						<i class="fa fa-newspaper-o fa-stack-1x fa-inverse"></i>
+						</span>
+					</a>
+					</li>
+
+				</ul>
+		        <p>Copyright © 2016, Las Cumbres Observatory. All rights reserved.</p>
+		    </div>
+		</div>
+	</section>
+
+  <div class="modal fade" id="submit-modal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">Submit</h4>
+        </div>
+        <div class="modal-body" id="submit-modal-body">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div><!-- /.modal -->
+
+  <div class="modal fade" id="login-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+      	  <div class="modal-dialog">
+  				<div class="loginmodal-container">
+            <div class="modal-header">
+  					<h1>Login to Your Account</h1><br>
+          </div>
+            <div id="login-error-msg" style="display:none;">Username or pasword incorrect</div>
+  					<input input type="text" name="username" id="email" placeholder="Username"><br/>
+            <input type="password" name="password" id="password" placeholder="Password"><br/>
+            <button id="login-btn" class="login loginmodal-submit">login</button>
+
+  				  <div class="modal-footer">
+  					<a href="#">Register</a> - <a href="#">Forgot Password</a>
+  				  </div>
+  				</div>
+  			</div>
+  		  </div>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>
