@@ -83,22 +83,21 @@ function formatRequest(target){
 }
 
 function sendRequest(target){
-  var url = apiRoot + 'service/request/submit';
+  var url = apiRoot + 'api/request/submit/';
   var ur = formatRequest(target);
   var data = {
     "request_data":ur,
-    // "username": localStorage.getItem('username'),
-    // "password": localStorage.getItem('password'),
-    "proposal" : 'LCOEPO2014B-010'
+    "proposal" : "LCOEPO2014B-010",
   }
   $.ajax({
     url: url,
     method: 'POST',
     cache: false,
-    data: ur,
+    data: data,
+    dataType: 'json',
     headers: {
-        'Authorization':'Bearer ' + localStorage.getItem('token')
-      },
+        'Authorization':'Bearer ' + localStorage.getItem('token'),
+    },
     error: function(e){
       console.log('Error: '+e);
       var content = "<h3>Error!</h3><p>Sorry, there was a problem submitting your request. Please try later.</p>"

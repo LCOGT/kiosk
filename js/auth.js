@@ -1,7 +1,7 @@
 /* globals $ rivetsBindings rivets apiRoot refreshTable */
 'use strict';
 
-var apiRoot = 'http://scheduler-dev.lco.gtn/observe/';
+var apiRoot = 'http://localhost:8000/';
 var client_id = 'RDjxBxIQnEwZzDH6hL5w97kT7hREenR8Rzw5gwxQ';
 var profile = {
   username: '',
@@ -10,28 +10,34 @@ var profile = {
 
 // rivets.bind($('#profile'), profile);
 
-$.ajaxPrefilter(function(options, originalOptions, jqXHR){
-  if(options.url.indexOf('lco.gtn/') >= 0 && localStorage.getItem('token')){
-    jqXHR.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem('token'));
-  }
-});
+// $.ajaxPrefilter(function(options, originalOptions, jqXHR){
+//   if(options.url.indexOf('localhost:8000/') >= 0 && localStorage.getItem('token')){
+//     jqXHR.setRequestHeader('Authorization', 'Token ' + localStorage.getItem('token'));
+//   }
+// });
 
 function setHeader(xhr) {
   xhr.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem('token'));
 }
 
 function getProfile(password){
-  $.getJSON(apiRoot + 'api/profile/', function(data){
+  $.ajax({
+  url: apiRoot + 'api/profile/',
+  type: 'GET',
+  dataType: 'json',
+  success: function() {
     profile.username = data.username || '';
     profile.password = password || '';
     localStorage.setItem('username', profile.username);
     localStorage.setItem('password', profile.password);
-  });
+  },
+  beforeSend: setHeader
+});
 }
 
 function login(username, password, callback){
   $.post(
-    apiRoot + 'o/token/',
+    apiRoot + 'api/api-token-auth/',
     {
       'username': username,
       'password': password,
@@ -39,7 +45,7 @@ function login(username, password, callback){
       'grant_type': 'password'
     }
   ).done(function(data){
-    localStorage.setItem('token', data.access_token);
+    localStorage.setItem('token', data.token);
     getProfile(password);
     getRequests();
     callback(true);
