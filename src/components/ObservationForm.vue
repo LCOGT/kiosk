@@ -1,7 +1,10 @@
 <template>
 
   <div id="observation-form" v-if="loggedin">
-    <div class="select">
+    <div class="field">
+    <label class="label">Project Name: {{proposalName}}</label>
+    <div class="control">
+      <div class="select">
       <select v-model="observation.proposal">
       <option disabled value="">Select your project</option>
       <option v-for="proposal in proposals" v-bind:value="proposal.value" v-bind:key="proposal.id">
@@ -9,12 +12,16 @@
       </option>
       </select>
     </div>
+    </div>
+  </div>
 
-      <div id="select-form" v-if="mode === 'select'" class="level">
-        <p>Which type of object?</p>
+      <div id="select-form" v-show="mode === 'select'">
+        <p class="is-size-4">Select a type of object?</p>
+        <div  class="level">
         <div class="level-item" v-for="item in object_types">
           <button v-on:click="selectObject(item.avm)" class="button">{{ item.name }}</button>
         </div>
+      </div>
       </div>
 
       <div class="columns is-multiline">
@@ -23,8 +30,8 @@
             <article class="media">
               <div class="media-content">
                 <div class="content">
-                  <p>
-                    <a v-on:click="scheduleSelectObject(item)">{{item.name}}</a>
+                  <p class="block-with-text">
+                    <a v-on:click="scheduleSelectObject(item)" class="is-size-5">{{item.name}}</a>
                     <br>
                       {{item.desc}}
                   </p>
@@ -35,7 +42,7 @@
         </div>
       </div>
 
-    <form @submit.prevent="handleSubmit" v-if="mode === 'manual'">
+    <form @submit.prevent="handleSubmit" v-show="mode === 'manual'">
 
       <label class="label">Target name</label>
       <input
@@ -55,7 +62,6 @@
         v-if="lookedup"
         class="success-message"
       >✅ {{lookupmsg}}</p>
-      <label class="label">Project Name</label>
       <p
         v-if="submitting"
         class="pending-message"
@@ -75,6 +81,8 @@
 </template>
 
 <script>
+import { buildRequest } from '../utils/schedule.js'
+
 export default {
   name: 'observation-form',
   props: {
@@ -101,8 +109,6 @@ export default {
         {"name":"Moon", "avm":"99"}
         ],
       objects: [],
-      startstamp: '',
-      endstamp: '',
       error:'',
       success: false,
       lookedup:false,
@@ -110,7 +116,6 @@ export default {
     }
   },
   mounted() {
-    this.setWindows()
   },
   computed: {
     invalidName() {
@@ -118,6 +123,13 @@ export default {
     },
     errorMsg() {
       return this.message
+    },
+    proposalName(){
+      for (var i=0;i<this.proposals.length;i++){
+          if (this.proposals[i].value == this.observation.proposal){
+            return this.proposals[i].text
+          }
+      };
     }
   },
   methods: {
@@ -172,9 +184,9 @@ export default {
         this.error = 'You must type a valid object name'
         return
       }
-      var data = this.buildRequest()
+      var data = buildRequest(this.observation)
       await this.$emit('add:observation', data)
-      this.$refs.first.focus()
+      // this.$refs.first.focus()
       this.submitting = false
     },
 
@@ -184,134 +196,8 @@ export default {
       this.submitting = false
       this.error = ''
       this.errorSubmit = ''
+      this.objects = []
     },
-    buildTarget(){
-      var target;
-      if (this.observation.type == 'sidereal'){
-        target = {
-          "type": "ICRS",
-          "name": this.observation['name'],
-          "ra": this.observation.coords['ra'],
-          "dec": this.observation.coords['dec'],
-          'epoch': 2000
-        }
-      } else {
-        var epoch = this.observation.coords['epoch_jd'] - 2400000.5;
-        target = {
-          "type": "ORBITAL_ELEMENTS",
-          "name": this.observation['name'],
-          "epochofel": epoch,
-          "scheme": "JPL_MAJOR_PLANET",
-          "orbinc": this.observation.coords['inclination'],
-          "longascnode": this.observation.coords['ascending_node'],
-          "argofperih": this.observation.coords['argument_of_perihelion'],
-          "meandist": this.observation.coords['semimajor_axis'],
-          "eccentricity": this.observation.coords['eccentricity'],
-          "meananom": this.observation.coords['mean_anomaly'],
-          "dailymot":this.observation.coords['mean_daily_motion']
-        }
-      }
-      return target
-    },
-    buildConfigs(){
-      var configs = Array()
-      if (this.observation.coords.filters){
-        for (var i=0;i<this.observation.coords.filters.length;i++){
-          configs.push({'filter': this.observation.coords.filters[i].name,
-                        'exposure': this.observation.coords.filters[i].exposure})
-        }
-        return configs
-      }
-      var planets = {
-        'jupiter' : {'filter':'up', 'exposure':0.2},
-        'mars' : {'filter':'rp', 'exposure':5},
-        'uranus' :{'filter':'rp', 'exposure':5},
-        'neptune' : {'filter':'rp', 'exposure':5},
-        'mercury' : {'filter':'rp', 'exposure':5},
-        'saturn' :{'filter':'up', 'exposure':0.5},
-        'venus' : {'filter':'up', 'exposure':0.1}
-      }
-      if (this.observation.name.toLowerCase().substring(0,3) == 'ngc'){
-        configs = [
-          {'filter':'rp', 'exposure':120},
-          {'filter':'B', 'exposure':120},
-          {'filter':'V', 'exposure':120}
-        ]
-      } else if (this.observation.type == 'non_sidereal'){
-        try {
-          configs = [planets[this.observation.name.toLowerCase()]]
-          console.log(configs)
-        } catch(error) {
-          console.error(error)
-          configs = [{'filter':'u', 'exposure':0.1}]
-        }
-      } else if (this.observation.name.toLowerCase().substring(0,1) == 'm'){
-        configs = [
-          {'filter':'rp', 'exposure':90},
-          {'filter':'B', 'exposure':90},
-          {'filter':'V', 'exposure':90}
-        ]
-      }
-
-      return configs
-    },
-    buildRequest(){
-      var target = this.buildTarget()
-      var configs = this.buildConfigs()
-      var constraints = constraints = {
-        'max_airmass': 1.6,
-        'min_lunar_distance': 30
-      }
-      var inst_configs = Array();
-      for (var i=0;i<configs.length;i++){
-          var conf = {
-                    'exposure_time': configs[i]['exposure'],
-                    'exposure_count': 1,
-                    'optical_elements': {
-                        'filter': configs[i]['filter']
-                    }
-                }
-          inst_configs.push(conf)
-      }
-      var config  = [{
-            'type': 'EXPOSE',
-            'instrument_type': '0M4-SCICAM-SBIG',
-            'target': target,
-            'constraints': constraints,
-            'acquisition_config': {},
-            'guiding_config': {},
-            'instrument_configs': inst_configs
-        }]
-      var timewindow = {
-        "start": this.startstamp,
-        "end": this.endstamp
-        }
-      var request = {
-        "location":{"telescope_class":"0m4"},
-        "constraints":{"max_airmass":2.0},
-        "target": target,
-        "configurations": config,
-        "windows": [timewindow],
-        "observation_note" : "Serol",
-        "type":"request"
-      }
-      var data = {
-          "name": "kiosk-"+this.observation.name,
-          "proposal": this.observation.proposal,
-          "ipp_value": 1.05,
-          "operator": "SINGLE",
-          "observation_type": "NORMAL",
-          "requests": [request],
-      }
-      return data
-    },
-    setWindows() {
-  		var start = new Date();
-  		var end = new Date();
-  		this.startstamp = start.toISOString().substring(0,19);
-  		end.setDate( end.getDate() + 7 );
-  		this.endstamp = end.toISOString().substring(0,19);
-  	},
     async selectObject (avm) {
       var start = new Date();
       var end = new Date();
@@ -327,7 +213,7 @@ export default {
       var url = `https://whatsup.lco.global/range/?start=${startstamp}&aperture=0m4&end=${endstamp}&category=${avm}&format=json`;
       const response = await fetch(url, requestOptions)
       var data = await response.json()
-      this.objects = data.targets
+      this.objects = data.targets.slice(0,8)
     },
     scheduleSelectObject(data) {
       this.submitting = true
@@ -365,4 +251,24 @@ form {
 .pending-message {
   color: #FFCE33;
 }
+.box .content {
+  max-height:100px;
+  overflow:hidden;
+}
+/* styles for '...' */
+/* create the ... */
+.box .content:after {
+  /* points in the end */
+  content: '...';
+  /* absolute position */
+  position: absolute;
+  /* set position to right bottom corner of block */
+  right: 0;
+  bottom: 0;
+}
+
+.box .content:hover {
+  overflow: visible;
+}
+
 </style>

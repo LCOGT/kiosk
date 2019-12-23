@@ -1,6 +1,6 @@
 <template>
-  <div id="observation-table">
-    <h1>Past Observations</h1>
+  <div id="observation-table" v-if="loggedin">
+    <h1 class="is-size-2">Past Observations</h1>
 
     <p
       v-if="observations.length < 1"

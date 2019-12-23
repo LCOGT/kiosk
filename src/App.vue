@@ -3,7 +3,7 @@
     id="app"
     class="container"
   >
-  <div id="header" class="is-size-1">
+  <div id="header" class="is-size-4">
     <h1  class="title">Kiosk</h1>
   <img src="@/assets/LCO_logo.jpg" align="right"/>
   </div>
