@@ -17,11 +17,16 @@
 
       <div id="select-form" v-show="mode === 'select'">
         <p class="is-size-4">Select a type of object?</p>
-        <div  class="level">
-        <div class="level-item" v-for="item in object_types">
-          <button v-on:click="selectObject(item.avm)" class="button">{{ item.name }}</button>
+        <div class="level">
+          <div class="level-item" v-for="item in object_types">
+            <button v-on:click="selectObject(item.avm)" class="button">{{ item.name }}</button>
+          </div>
         </div>
-      </div>
+        <div class="level" v-if="object_type === 'planet' ">
+          <div class="level-item" v-for="item in planets">
+            <button v-on:click="lookUpPlanet(item)" class="button">{{ item }}</button>
+          </div>
+        </div>
       </div>
 
       <div class="columns is-multiline">
@@ -54,29 +59,28 @@
         v-on:focus="clearStatus"
         v-on:change="lookUp"
       >
-      <p
-        v-if="error"
-        class="error-message"
-      >❗{{error}}</p>
-      <p
-        v-if="lookedup"
-        class="success-message"
-      >✅ {{lookupmsg}}</p>
-      <p
-        v-if="submitting"
-        class="pending-message"
-      >🔶 Pending</p>
-      <p
-        v-if="errorMsg && !submitting"
-        class="error-message"
-      >❗{{errorMsg}}</p>
-      <p
-        v-if="success"
-        class="success-message"
-      >✅ Observation successfully submitted</p>
       <button class="button">Submit</button>
     </form>
-
+    <p
+      v-if="error"
+      class="error-message"
+    >❗{{error}}</p>
+    <p
+      v-if="lookedup"
+      class="success-message"
+    >✅ {{lookupmsg}}</p>
+    <p
+      v-if="submitting"
+      class="pending-message"
+    >🔶 Pending</p>
+    <p
+      v-if="errorMsg && !submitting"
+      class="error-message"
+    >❗{{errorMsg}}</p>
+    <p
+      v-if="success"
+      class="success-message"
+    >✅ Observation successfully submitted</p>
   </div>
 </template>
 
@@ -108,16 +112,21 @@ export default {
         {"name":"Nebula", "avm":"4"},
         {"name":"Moon", "avm":"99"}
         ],
+      object_type: '',
       objects: [],
       error:'',
       success: false,
       lookedup:false,
-      lookupmsg: ''
+      lookupmsg: '',
+      planets: ['mercury','mars','venus','uranus','jupiter','neptune','saturn']
     }
   },
   mounted() {
   },
   computed: {
+    invalidProposal(){
+      return this.observation.proposal === ''
+    },
     invalidName() {
       return this.observation.name === ''
     },
@@ -137,9 +146,8 @@ export default {
       this.clearStatus()
       var target_type = 'sidereal'
       var whatsup = false
-      var planets = ['mercury','mars','venus','uranus','jupiter','neptune','saturn']
       try {
-        if (planets.includes(this.observation.name.toLowerCase())){
+        if (this.planets.includes(this.observation.name.toLowerCase())){
           target_type = 'non_sidereal'
         }
         const response = await fetch(`https://whatsup.lco.global/target/?name=${this.observation.name}&aperture=0m4`)
@@ -175,13 +183,20 @@ export default {
         this.error = error.response
       }
     },
-
+    lookUpPlanet(name){
+      this.observation.name = name
+      this.lookUp()
+    },
     async handleSubmit() {
       this.clearStatus()
       this.submitting = true
 
       if (this.invalidName) {
         this.error = 'You must type a valid object name'
+        return
+      }
+      if (this.invalidProposal) {
+        this.error = 'Please select your project'
         return
       }
       var data = buildRequest(this.observation)
@@ -199,6 +214,10 @@ export default {
       this.objects = []
     },
     async selectObject (avm) {
+      if (avm=='1.1'){
+        this.object_type = 'planet'
+        return
+      }
       var start = new Date();
       var end = new Date();
       var startstamp = start.toISOString().substring(0,19);
@@ -254,17 +273,6 @@ form {
 .box .content {
   max-height:100px;
   overflow:hidden;
-}
-/* styles for '...' */
-/* create the ... */
-.box .content:after {
-  /* points in the end */
-  content: '...';
-  /* absolute position */
-  position: absolute;
-  /* set position to right bottom corner of block */
-  right: 0;
-  bottom: 0;
 }
 
 .box .content:hover {
