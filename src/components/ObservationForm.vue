@@ -3,7 +3,7 @@
   <div id="observation-form" v-if="loggedin">
     <div class="field">
     <label class="label">Project Name: {{proposalName}}</label>
-    <div class="control">
+    <div class="control" v-show="!proposalName">
       <div class="select">
       <select v-model="observation.proposal">
       <option disabled value="">Select your project</option>
@@ -45,6 +45,10 @@
             </article>
           </div>
         </div>
+      </div>
+
+      <div id="selected-object" v-show="observation">
+        <h2>{{observation.name}}</h2>
       </div>
 
     <form @submit.prevent="handleSubmit" v-show="mode === 'manual'">
@@ -144,18 +148,22 @@ export default {
   methods: {
     async lookUp() {
       this.clearStatus()
+      console.log(this.observation.name)
       var target_type = 'sidereal'
       var whatsup = false
+      var data
       try {
         if (this.planets.includes(this.observation.name.toLowerCase())){
           target_type = 'non_sidereal'
+        } else {
+          const response = await fetch(`https://whatsup.lco.global/target/?name=${this.observation.name}&aperture=0m4`)
+          data = await response.json()
         }
-        const response = await fetch(`https://whatsup.lco.global/target/?name=${this.observation.name}&aperture=0m4`)
-        var data = await response.json()
 
-        if (data.target.length == 0){
+        if (data == undefined || data.target.length == 0){
           const response = await fetch('https://simbad2k.lco.global/'+this.observation.name+'?target_type='+target_type)
           data = await response.json()
+          console.log(data)
         } else {
           whatsup = true
         }
@@ -174,7 +182,11 @@ export default {
               var filters = []
               this.lookupmsg = `${this.observation.name} coordinates found`
             }
-            this.observation.coords = {ra:ra,dec:dec,filters:filters}
+            if (target_type == 'non_sidereal'){
+              this.observation.coords = data
+            } else {
+              this.observation.coords = {ra:ra,dec:dec,filters:filters}
+            }
             this.observation.type = target_type
             this.lookedup = true
           }

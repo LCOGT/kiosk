@@ -1,7 +1,9 @@
 <template>
   <div id="observation-table" v-if="loggedin">
     <h1 class="is-size-2">Past Observations</h1>
-
+    <p>
+      <img :src="image.url" :alt="image.name"/>
+    </p>
     <p
       v-if="observations.length < 1"
       class="empty-table"
@@ -22,11 +24,12 @@
           v-for="observation in observations"
         >
           <td><a :href="'https://observe.lco.global/requestgroups/'+observation.id">{{observation.name}}</a></td>
-          <td>{{observation.state}}</td>
+          <td>{{observation.state}}
           <td v-if='observation.state=="PENDING"'>
             <button @click="$emit('delete:observation', observation.id)" class="button is-warning">Cancel</button>
+          <td v-else-if='observation.state=="COMPLETED"'>
+            <button @click="getframeid(observation.requests[0].id)" class="button is-info">Get Image</button>
           <td v-else>
-
           </td>
 
         </tr>
@@ -46,23 +49,37 @@ export default {
   data() {
     return {
       editing: null,
+      image: {url:'',name:''},
     }
   },
   methods: {
-    editMode(observation) {
-      this.cachedObservation = Object.assign({}, observation)
-      this.editing = observation.id
+    async getframeid(reqnum){
+      var data
+      console.log(reqnum)
+      try {
+          const response = await fetch(`https://archive-api.lco.global/frames/?ordering=-id&limit=1&REQNUM=${reqnum}`)
+          data = await response.json()
+          console.log(data)
+          if (data.results != undefined && data.results.length >0){
+             data = await this.getThumbnail(data.results[0].id)
+             this.image.name = reqnum
+             this.image.url = data['url']
+             return
+          }
+      } catch(error){
+        console.error(error)
+        return '0'
+      }
     },
-
-    cancelEdit(observation) {
-      Object.assign(observation, this.cachedObservation)
-      this.editing = null;
-    },
-
-    editObservation(observation) {
-      if (observation.name === '' || observation.email === '') return
-      this.$emit('edit:observation', observation.id, observation)
-      this.editing = null
+    async getThumbnail(frameid) {
+      var data
+      try {
+          const response = await fetch(`https://thumbnails.lco.global/${frameid}/?height=600&width=600&color=true`)
+          data = await response.json()
+          return data
+      } catch(error){
+        console.error(error)
+      }
     }
   }
 }

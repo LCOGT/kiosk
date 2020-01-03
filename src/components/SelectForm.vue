@@ -1,7 +1,7 @@
 <template>
   <div class="buttons" id="select-form"  v-show="mode =='start'">
-        <button v-on:click="setMode('select')" class="button">Select</button>
-        <button v-on:click="setMode('manual')"  class="button">Manual</button>
+        <button v-on:click="setMode('select')" class="button">Suggestions</button>
+        <button v-on:click="setMode('manual')"  class="button">Catalog LookUp</button>
   </div>
 
 </template>
