@@ -16,27 +16,30 @@
   </div>
 
       <div id="select-form" v-show="mode === 'select'">
-        <p class="is-size-4">Select a type of object?</p>
+        <p class="is-size-4">Select a type of target?</p>
         <div class="level">
           <div class="level-item" v-for="item in object_types">
-            <button v-on:click="selectObject(item.avm)" class="button">{{ item.name }}</button>
+            <button v-on:click="whatsupObjects(item.avm)" class="button">{{ item.name }}</button>
           </div>
         </div>
-        <div class="level" v-if="object_type === 'planet' ">
-          <div class="level-item" v-for="item in planets">
-            <button v-on:click="lookUpPlanet(item)" class="button">{{ item }}</button>
+          <div v-if="object_type === 'planet'">
+            <p>Select a planet</p>
+            <div class="buttons">
+            <div v-for="item in planets">
+              <button v-on:click="lookUpPlanet(item)" class="button is-capitalized">{{ item }}</button>
+            </div>
           </div>
         </div>
       </div>
 
       <div class="columns is-multiline">
-      <div class="column is-one-quarter" v-for="item in objects">
+      <div class="column is-one-third" v-for="item in objects">
         <div class="box">
             <article class="media">
               <div class="media-content">
                 <div class="content">
                   <p class="block-with-text">
-                    <a v-on:click="scheduleSelectObject(item)" class="is-size-5">{{item.name}}</a>
+                    <a v-on:click="selectObject(item)" class="is-size-5">{{item.name}}</a>
                     <br>
                       {{item.desc}}
                   </p>
@@ -47,44 +50,65 @@
         </div>
       </div>
 
-      <div id="selected-object" v-show="observation">
-        <h2>{{observation.name}}</h2>
-      </div>
-
-    <form @submit.prevent="handleSubmit" v-show="mode === 'manual'">
+    <div v-show="mode === 'manual'">
 
       <label class="label">Target name</label>
-      <input
-        ref="first"
-        type="text"
-        :class="{ 'has-error': submitting && invalidName }"
-        class="input"
-        v-model="observation.name"
-        v-on:focus="clearStatus"
-        v-on:change="lookUp"
-      >
-      <button class="button">Submit</button>
-    </form>
+      <div class="field has-addons">
+        <div class="control">
+          <input
+            ref="first"
+            type="text"
+            :class="{ 'has-error': submitting }"
+            class="input"
+            v-model="observation.name"
+            v-on:focus="clearStatus"
+            v-on:change="lookUp"
+          >
+        </div>
+        <div class="control">
+          <a class="button is-info" v-on:click="lookUp">
+            Search
+          </a>
+        </div>
+      </div>
+    </div>
     <p
       v-if="error"
       class="error-message"
-    >❗{{error}}</p>
+    ><i class="fad fa-exclamation-triangle"></i>{{error}}</p>
     <p
       v-if="lookedup"
       class="success-message"
-    >✅ {{lookupmsg}}</p>
+    ><i class="fa fa-smile"></i> {{lookupmsg}}<br/>
+    </p>
     <p
       v-if="submitting"
       class="pending-message"
-    >🔶 Pending</p>
+    ><i class="far fa-clock"></i> Pending</p>
     <p
-      v-if="errorMsg && !submitting"
+      v-if="errorMsg && submitted"
       class="error-message"
-    >❗{{errorMsg}}</p>
+    ><i class="fad fa-exclamation-triangle"></i>{{errorMsg}}</p>
     <p
       v-if="success"
       class="success-message"
-    >✅ Observation successfully submitted</p>
+    ><i class="fa fa-check"></i> Observation successfully submitted</p>
+
+    <div id="object-info" v-if="observation.name">
+      <h3>{{observation.name}}</h3>
+      <p v-if="observation.desc">
+        {{observation.desc}}
+      </p>
+    </div>
+
+    <div class="field is-grouped">
+        <p class="control">
+        <button class="button  is-primary" v-on:click="handleSubmit">Submit</button>
+      </p>
+        <p class="control">
+        <button class="button  is-secondary" v-on:click="$emit('changemode', 'start')">Reset</button>
+      </p>
+    </div>
   </div>
 </template>
 
@@ -102,12 +126,14 @@ export default {
   },
   data() {
     return {
+      submitted: false,
       submitting: false,
       observation: {
         name: '',
         coords: '',
         proposal: '',
-        type:''
+        type:'',
+        desc:''
       },
       object_types: [
         {"name":"Galaxy","avm":"5"},
@@ -125,15 +151,7 @@ export default {
       planets: ['mercury','mars','venus','uranus','jupiter','neptune','saturn']
     }
   },
-  mounted() {
-  },
   computed: {
-    invalidProposal(){
-      return this.observation.proposal === ''
-    },
-    invalidName() {
-      return this.observation.name === ''
-    },
     errorMsg() {
       return this.message
     },
@@ -148,7 +166,6 @@ export default {
   methods: {
     async lookUp() {
       this.clearStatus()
-      console.log(this.observation.name)
       var target_type = 'sidereal'
       var whatsup = false
       var data
@@ -163,7 +180,6 @@ export default {
         if (data == undefined || data.target.length == 0){
           const response = await fetch('https://simbad2k.lco.global/'+this.observation.name+'?target_type='+target_type)
           data = await response.json()
-          console.log(data)
         } else {
           whatsup = true
         }
@@ -196,18 +212,22 @@ export default {
       }
     },
     lookUpPlanet(name){
+      this.error = ''
       this.observation.name = name
       this.lookUp()
     },
     async handleSubmit() {
       this.clearStatus()
       this.submitting = true
+      this.submitted = true
 
-      if (this.invalidName) {
+      if (!this.observation.name) {
+        this.submitting = false
         this.error = 'You must type a valid object name'
         return
       }
-      if (this.invalidProposal) {
+      if (!this.observation.proposal) {
+        this.submitting = false
         this.error = 'Please select your project'
         return
       }
@@ -215,6 +235,7 @@ export default {
       await this.$emit('add:observation', data)
       // this.$refs.first.focus()
       this.submitting = false
+      this.$emit('changemode', 'start')
     },
 
     clearStatus() {
@@ -224,10 +245,15 @@ export default {
       this.error = ''
       this.errorSubmit = ''
       this.objects = []
+      this.object_type = null
+      this.$emit('changemessage', '')
+      this.submitted = false
     },
-    async selectObject (avm) {
+    async whatsupObjects (avm) {
+      this.clearStatus()
       if (avm=='1.1'){
         this.object_type = 'planet'
+        this.objects = null
         return
       }
       var start = new Date();
@@ -246,17 +272,18 @@ export default {
       var data = await response.json()
       this.objects = data.targets.slice(0,8)
     },
-    scheduleSelectObject(data) {
-      this.submitting = true
-      this.$emit('changemode', 'submit')
+    selectObject(data){
+      this.error = ''
+      this.objects = []
       this.observation.type = 'sidereal'
       this.observation.name = data.name
+      this.observation.desc = data.desc
       this.observation.coords = {
           'ra'  : data.ra,
           'dec' : data.dec
         }
-      this.handleSubmit()
-    }
+    },
+
   }}
 </script>
 

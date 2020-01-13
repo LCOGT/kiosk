@@ -12,6 +12,8 @@
     @login:user="login"
     @logout:user="logout"
      />
+   <div class="columns">
+     <div class="column is-half">
      <select-form
      :mode="mode"
      :loggedin="loggedin"
@@ -24,7 +26,11 @@
     :loggedin="loggedin"
     :message="message"
     @add:observation="addObservation"
+    @changemode="changeMode"
+    @changemessage="changeMessage"
     />
+  </div>
+  <div class="column is-half">
     <observation-table
       :observations="observations"
       :proposals="proposals"
@@ -32,7 +38,8 @@
       @delete:observation="deleteObservation"
     />
   </div>
-
+  </div>
+</div>
 </template>
 
 <script>
@@ -108,12 +115,10 @@ export default {
           await this.getObservations();
         } else {
           this.message = response
-          console.log(response)
         }
       } catch (error) {
         await error
         var req  = error.response.data.requests
-        console.log(req)
         if (req){
           var txt = 'There was a problem submitting this request'
           for(var i=0; i < req.length; i++){
@@ -137,7 +142,6 @@ export default {
       try {
         var response = await this.$http(`https://observe.lco.global/api/requestgroups/${id}/cancel/`, requestOptions)
         if (response){
-          console.log(response)
           this.getObservations()
         }
       } catch (error) {
@@ -200,6 +204,9 @@ export default {
     },
     changeMode(mode){
       this.mode = mode
+    },
+    changeMessage(message){
+      this.message = null
     },
     authHeader() {
       return { 'Authorization': 'Token '+this.token};

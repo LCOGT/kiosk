@@ -1,9 +1,14 @@
 <template>
   <div id="observation-table" v-if="loggedin">
     <h1 class="is-size-2">Past Observations</h1>
-    <p>
+    <div v-if="gettingimg === false && image.url">
       <img :src="image.url" :alt="image.name"/>
-    </p>
+    </div>
+    <div v-else-if="gettingimg === true">
+        <div class="fa-3x">
+        <i class="fas fa-spinner fa-spin"></i>
+      </div>
+    </div>
     <p
       v-if="observations.length < 1"
       class="empty-table"
@@ -24,7 +29,7 @@
           v-for="observation in observations"
         >
           <td><a :href="'https://observe.lco.global/requestgroups/'+observation.id">{{observation.name}}</a></td>
-          <td>{{observation.state}}
+          <td><i class='far' v-bind:class="statusIcon(observation.state)"></i>
           <td v-if='observation.state=="PENDING"'>
             <button @click="$emit('delete:observation', observation.id)" class="button is-warning">Cancel</button>
           <td v-else-if='observation.state=="COMPLETED"'>
@@ -48,20 +53,29 @@ export default {
   },
   data() {
     return {
-      editing: null,
+      gettingimg: null,
       image: {url:'',name:''},
     }
   },
   methods: {
+    statusIcon(state){
+      var icon = {'COMPLETED' : 'fa-check',
+                  'FAILED': 'fa-times',
+                  'WINDOW_EXPIRED': 'fa-times',
+                  'PENDING': 'fa-clock',
+                  'CANCELED': 'fa-ban'};
+      return icon[state]
+    },
     async getframeid(reqnum){
       var data
-      console.log(reqnum)
+      this.gettingimg = true
       try {
           const response = await fetch(`https://archive-api.lco.global/frames/?ordering=-id&limit=1&REQNUM=${reqnum}`)
           data = await response.json()
           console.log(data)
           if (data.results != undefined && data.results.length >0){
              data = await this.getThumbnail(data.results[0].id)
+             this.gettingimg = false
              this.image.name = reqnum
              this.image.url = data['url']
              return
