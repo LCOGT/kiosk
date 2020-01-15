@@ -7,7 +7,10 @@
       <div class="select">
       <select v-model="observation.proposal">
       <option disabled value="">Select your project</option>
-      <option v-for="proposal in proposals" v-bind:value="proposal.value" v-bind:key="proposal.id">
+      <option v-for="proposal in proposals"
+        v-bind:value="proposal.value"
+        v-bind:key="proposal.id"
+        >
         {{proposal.text}}
       </option>
       </select>
@@ -26,7 +29,7 @@
             <p>Select a planet</p>
             <div class="buttons">
             <div v-for="item in planets">
-              <button v-on:click="lookUpPlanet(item)" class="button is-capitalized">{{ item }}</button>
+              <button v-on:click="lookUp(name=item)" class="button is-capitalized">{{ item }}</button>
             </div>
           </div>
         </div>
@@ -60,9 +63,8 @@
             type="text"
             :class="{ 'has-error': submitting }"
             class="input"
-            v-model="observation.name"
+            v-model="object_name"
             v-on:focus="clearStatus"
-            v-on:change="lookUp"
           >
         </div>
         <div class="control">
@@ -76,15 +78,18 @@
       v-if="error"
       class="error-message"
     ><i class="fad fa-exclamation-triangle"></i>{{error}}</p>
+    <div id="object-info" v-if="observation.name">
+      <h3 class="is-size-4 success-message"><i class="fa fa-check"></i> {{observation.name}} selected</h3>
+    </div>
     <p
       v-if="lookedup"
       class="success-message"
-    ><i class="fa fa-smile"></i> {{lookupmsg}}<br/>
+    ><i :class="targetIcon"></i> {{lookupmsg}}<br/>
     </p>
     <p
-      v-if="submitting"
+      v-if="submitting && !error && !errorMsg"
       class="pending-message"
-    ><i class="far fa-clock"></i> Pending</p>
+    ><i class="fas fa-spinner fa-spin"></i> Sending to scheduler</p>
     <p
       v-if="errorMsg && submitted"
       class="error-message"
@@ -94,19 +99,12 @@
       class="success-message"
     ><i class="fa fa-check"></i> Observation successfully submitted</p>
 
-    <div id="object-info" v-if="observation.name">
-      <h3>{{observation.name}}</h3>
-      <p v-if="observation.desc">
-        {{observation.desc}}
-      </p>
-    </div>
-
     <div class="field is-grouped">
         <p class="control">
         <button class="button  is-primary" v-on:click="handleSubmit">Submit</button>
       </p>
         <p class="control">
-        <button class="button  is-secondary" v-on:click="$emit('changemode', 'start')">Reset</button>
+        <button class="button  is-secondary" v-on:click="reset">Reset</button>
       </p>
     </div>
   </div>
@@ -122,7 +120,8 @@ export default {
     loggedin: Boolean,
     obs: Object,
     message: String,
-    mode: String
+    mode: String,
+    token: String
   },
   data() {
     return {
@@ -133,14 +132,14 @@ export default {
         coords: '',
         proposal: '',
         type:'',
-        desc:''
       },
+      object_name:'',
       object_types: [
-        {"name":"Galaxy","avm":"5"},
         {"name": "Planet", "avm":"1.1" },
+        {"name":"Galaxy","avm":"5"},
         {"name":"Star Cluster", "avm":"3.6.4"},
         {"name":"Nebula", "avm":"4"},
-        {"name":"Moon", "avm":"99"}
+        // {"name":"Moon", "avm":"99"}
         ],
       object_type: '',
       objects: [],
@@ -158,14 +157,33 @@ export default {
     proposalName(){
       for (var i=0;i<this.proposals.length;i++){
           if (this.proposals[i].value == this.observation.proposal){
+            this.error = ''
             return this.proposals[i].text
           }
       };
+    },
+    targetIcon() {
+      var icons = {'planet':'fas fa-planet-ringed',
+      '5':'fas fa-galaxy',
+      '4':'fad fa-smoke',
+      '3.6.4':'fas fa-stars'}
+      return icons[this.object_type]
     }
   },
   methods: {
-    async lookUp() {
+    reset(){
       this.clearStatus()
+      this.$emit('changemode', 'start')
+    },
+    async lookUp(name='') {
+
+      // this.clearStatus()
+      if (this.object_name){
+        this.observation.name = this.object_name
+        this.object_name = ''
+      } else if (name){
+        this.observation.name = name
+      }
       var target_type = 'sidereal'
       var whatsup = false
       var data
@@ -196,7 +214,7 @@ export default {
               var ra = data.ra_d
               var dec = data.dec_d
               var filters = []
-              this.lookupmsg = `${this.observation.name} coordinates found`
+              this.lookupmsg = "Coordinates found"
             }
             if (target_type == 'non_sidereal'){
               this.observation.coords = data
@@ -211,13 +229,7 @@ export default {
         this.error = error.response
       }
     },
-    lookUpPlanet(name){
-      this.error = ''
-      this.observation.name = name
-      this.lookUp()
-    },
     async handleSubmit() {
-      this.clearStatus()
       this.submitting = true
       this.submitted = true
 
@@ -232,22 +244,67 @@ export default {
         return
       }
       var data = buildRequest(this.observation)
-      await this.$emit('add:observation', data)
-      // this.$refs.first.focus()
-      this.submitting = false
-      this.$emit('changemode', 'start')
+      await this.addObservation(data)
+        .then( (resp) => {
+          if (resp){
+            this.clearStatus()
+            this.$emit('changemode', 'start')
+            this.success = true
+            this.$emit('getobservations')
+          }
+          this.submitting = false
+      });
     },
+    async addObservation(observation) {
+      this.error = ''
+      try {
+        const requestOptions = {
+          method: 'POST',
+          data: observation,
+          headers: { 'Authorization': 'Token '+this.token},
+          dataType: 'json',
+          contentType: 'application/json'}
+        const response = await this.$http('https://observe.lco.global/api/requestgroups/',requestOptions);
 
+        // this.observations = [...this.observations, data]
+        if (response.status == 200 || response.status == 201){
+          const data = await response.data
+          return data
+        } else {
+          this.error = response
+          return false
+        }
+      } catch (error) {
+        await error
+        console.log(error)
+        var req  = error.response.data.requests
+        if (req){
+          var txt = 'There was a problem submitting this request'
+          for(var i=0; i < req.length; i++){
+            if (req[i].non_field_errors){
+              txt = req[i]['non_field_errors'][0]
+            }
+          }
+          this.error = txt
+        } else {
+          this.error = 'There was a problem submitting this request'
+        }
+        return false
+      }
+    },
     clearStatus() {
       this.success = false
       this.lookedup = false
+      this.lookupmsg = ''
       this.submitting = false
       this.error = ''
       this.errorSubmit = ''
       this.objects = []
       this.object_type = null
-      this.$emit('changemessage', '')
       this.submitted = false
+      this.observation.name = ''
+      this.observation.desc = ''
+      this.$emit('changemessage', '')
     },
     async whatsupObjects (avm) {
       this.clearStatus()
@@ -255,6 +312,8 @@ export default {
         this.object_type = 'planet'
         this.objects = null
         return
+      } else {
+        this.object_type = avm
       }
       var start = new Date();
       var end = new Date();
@@ -277,7 +336,8 @@ export default {
       this.objects = []
       this.observation.type = 'sidereal'
       this.observation.name = data.name
-      this.observation.desc = data.desc
+      this.lookupmsg = data.desc
+      this.lookedup = true
       this.observation.coords = {
           'ra'  : data.ra,
           'dec' : data.dec
@@ -312,10 +372,6 @@ form {
 .box .content {
   max-height:100px;
   overflow:hidden;
-}
-
-.box .content:hover {
-  overflow: visible;
 }
 
 </style>

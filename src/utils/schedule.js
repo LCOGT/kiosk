@@ -54,9 +54,7 @@ function buildConfigs(observation){
   } else if (observation.type == 'non_sidereal'){
     try {
       configs = [planets[observation.name.toLowerCase()]]
-      console.log(configs)
     } catch(error) {
-      console.error(error)
       configs = [{'filter':'u', 'exposure':0.1}]
     }
   } else if (observation.name.toLowerCase().substring(0,1) == 'm'){

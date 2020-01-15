@@ -25,9 +25,10 @@
     :proposals="proposals"
     :loggedin="loggedin"
     :message="message"
-    @add:observation="addObservation"
+    :token="token"
     @changemode="changeMode"
     @changemessage="changeMessage"
+    @getobservations="getObservations"
     />
   </div>
   <div class="column is-half">
@@ -35,7 +36,10 @@
       :observations="observations"
       :proposals="proposals"
       :loggedin="loggedin"
+      :next_obs="next_obs"
+      :prev_obs="prev_obs"
       @delete:observation="deleteObservation"
+      @getobservations="getObservations"
     />
   </div>
   </div>
@@ -63,13 +67,15 @@ export default {
       proposals: [],
       default_proposal:'',
       loggedin:false,
-      token:false,
+      token:undefined,
       user:undefined,
       obs:undefined,
-      archive:false,
+      archive:undefined,
       message: '',
       success: false,
       mode:'',
+      next_obs: '',
+      prev_obs:''
     }
   },
 
@@ -83,56 +89,29 @@ export default {
   },
 
   methods: {
-    async getObservations() {
+    async getObservations(next=false, prev=false) {
       try {
         const requestOptions = {
             method: 'GET',
             headers: this.authHeader()
         };
-        const response = await fetch('https://observe.lco.global/api/requestgroups/?user='+this.user, requestOptions)
+        var url
+        if (this.next_obs && next){
+          url = this.next_obs
+        }else if (this.prev_obs && prev){
+          url = this.prev_obs
+        } else {
+          url = `https://observe.lco.global/api/requestgroups/?user=${this.user}`
+        }
+        const response = await fetch(url, requestOptions)
         const data = await response.json()
         this.observations = data.results
+        this.next_obs = data.next
+        this.prev_obs = data.previous
       } catch (error) {
         console.log(error)
       }
     },
-
-    async addObservation(observation) {
-      this.message = ''
-      try {
-        const requestOptions = {
-          method: 'POST',
-          data: observation,
-          headers: this.authHeader(),
-          dataType: 'json',
-          contentType: 'application/json'}
-        const response = await this.$http('https://observe.lco.global/api/requestgroups/',requestOptions);
-
-        this.obs = observation;
-        // this.observations = [...this.observations, data]
-        if (response.status == 200 || response.status == 201){
-          const data = await response.data
-          await this.getObservations();
-        } else {
-          this.message = response
-        }
-      } catch (error) {
-        await error
-        var req  = error.response.data.requests
-        if (req){
-          var txt = 'There was a problem submitting this request'
-          for(var i=0; i < req.length; i++){
-            if (req[i].non_field_errors){
-              txt = req[i]['non_field_errors'][0]
-            }
-          }
-          this.message = txt
-        } else {
-          this.message = 'There was a problem submitting this request'
-        }
-      }
-    },
-
     async deleteObservation(id) {
       const requestOptions = {
         method: 'POST',

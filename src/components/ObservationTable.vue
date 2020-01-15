@@ -18,7 +18,7 @@
     <table v-else class="table is-fullwidth">
       <thead>
         <tr>
-          <th>Name</th>
+          <th>Target</th>
           <th>Status</th>
           <th>Actions</th>
         </tr>
@@ -28,8 +28,8 @@
           :key="observation.id"
           v-for="observation in observations"
         >
-          <td><a :href="'https://observe.lco.global/requestgroups/'+observation.id">{{observation.name}}</a></td>
-          <td><i class='far' v-bind:class="statusIcon(observation.state)"></i>
+          <td><a :href="'https://observe.lco.global/requestgroups/'+observation.id">{{observation.requests[0].configurations[0].target.name}}</a></td>
+          <td :title="observation.state"><i class='far' v-bind:class="statusIcon(observation.state)"></i>
           <td v-if='observation.state=="PENDING"'>
             <button @click="$emit('delete:observation', observation.id)" class="button is-warning">Cancel</button>
           <td v-else-if='observation.state=="COMPLETED"'>
@@ -40,6 +40,24 @@
         </tr>
       </tbody>
     </table>
+    <div class="field is-grouped">
+      <p class="control" v-if="prev_obs">
+        <button @click="$emit('getobservations', false, true)" class="button">
+        <span class="icon is-small">
+          <i class="far fa-backward"></i>
+        </span>
+        <span>Previous</span>
+      </button>
+      </p>
+      <p class="control" v-if="next_obs">
+        <button @click="$emit('getobservations', true, false)" class="button">
+          <span>Next</span>
+          <span class="icon is-small">
+            <i class="far fa-forward"></i>
+          </span>
+        </button>
+      </p>
+    </div>
 
   </div>
 </template>
@@ -50,6 +68,8 @@ export default {
   props: {
     observations: Array,
     loggedin: Boolean,
+    next_obs: String,
+    prev_obs: String
   },
   data() {
     return {
