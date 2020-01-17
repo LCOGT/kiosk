@@ -2,7 +2,7 @@
 
   <div id="observation-form" v-if="loggedin">
     <div class="field">
-    <label class="label">Project Name: {{proposalName}}</label>
+    <h3>Project Name: {{proposalName}} <a v-on:click="resetProposal" v-show="proposalName">[change]</a></h3>
     <div class="control" v-show="!proposalName">
       <div class="select">
       <select v-model="observation.proposal">
@@ -171,6 +171,9 @@ export default {
     }
   },
   methods: {
+    resetProposal() {
+      this.observation.proposal = undefined
+    },
     reset(){
       this.clearStatus()
       this.$emit('changemode', 'start')

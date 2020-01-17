@@ -110,6 +110,10 @@ export default {
       try {
           const response = await fetch(`https://thumbnails.lco.global/${frameid}/?height=600&width=600&color=true`)
           data = await response.json()
+          if (data.message == 'RVB frames not found'){
+            const response = await fetch(`https://thumbnails.lco.global/${frameid}/?height=600&width=600`)
+            data = await response.json()
+          }
           return data
       } catch(error){
         console.error(error)
