@@ -94,14 +94,14 @@ export default {
   data() {
     return {
       gettingimg: null,
-      image: {url:'',name:'',count:0, id:''},
+      image: {url:'',name:'',count:0, id:'',iscolour:false},
       loadLarge: false
     }
   },
   computed: {
     largeUrl: function() {
         if (this.image) {
-          return `https://thumbnails.lco.global/${this.image.id}/?width=4000&height=4000`;
+          return `https://thumbnails.lco.global/${this.image.id}/?width=4000&height=4000&color=${this.image.iscolour}`;
         } else {
           return '';
         }
@@ -138,6 +138,7 @@ export default {
       }
     },
     async getThumbnail(frameid) {
+      let that = this;
       var data
       try {
           const response = await fetch(`https://thumbnails.lco.global/${frameid}/?height=600&width=600&color=true`)
@@ -145,6 +146,9 @@ export default {
           if (data.message == 'RVB frames not found'){
             const response = await fetch(`https://thumbnails.lco.global/${frameid}/?height=600&width=600`)
             data = await response.json()
+            that.image.iscolour = false
+          } else {
+            that.image.iscolour = true
           }
           return data
       } catch(error){
