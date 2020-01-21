@@ -3,6 +3,26 @@
     <h1 class="is-size-2">Past Observations</h1>
     <div v-if="gettingimg === false && image.url">
       <img :src="image.url" :alt="image.name"/>
+      <div class="level">
+        <div class="level-item">
+          <div class="tags has-addons">
+            <span class="tag">Images</span>
+            <span class="tag is-primary">{{image.count}}</span>
+          </div>
+        </div>
+        <div class="level-item">
+          <button class="button" @click="generateLarge">
+            <span class="icon is-small">
+              <span v-if="loadLarge">
+                <i class="fa fa-spin fa-spinner"></i>
+              </span>
+              <span v-else>
+              <i class="far fa-download"></i>
+            </span>
+            </span>
+          </button>
+        </div>
+      </div>
     </div>
     <div v-else-if="gettingimg === true">
         <div class="fa-3x">
@@ -74,8 +94,18 @@ export default {
   data() {
     return {
       gettingimg: null,
-      image: {url:'',name:''},
+      image: {url:'',name:'',count:0, id:''},
+      loadLarge: false
     }
+  },
+  computed: {
+    largeUrl: function() {
+        if (this.image) {
+          return `https://thumbnails.lco.global/${this.image.id}/?width=4000&height=4000`;
+        } else {
+          return '';
+        }
+      }
   },
   methods: {
     statusIcon(state){
@@ -87,17 +117,19 @@ export default {
       return icon[state]
     },
     async getframeid(reqnum){
+      let that = this;
       var data
-      this.gettingimg = true
+      that.gettingimg = true
       try {
           const response = await fetch(`https://archive-api.lco.global/frames/?ordering=-id&limit=1&REQNUM=${reqnum}`)
           data = await response.json()
-          console.log(data)
+          that.image.count = data.count
           if (data.results != undefined && data.results.length >0){
-             data = await this.getThumbnail(data.results[0].id)
-             this.gettingimg = false
-             this.image.name = reqnum
-             this.image.url = data['url']
+            that.image.id = data.results[0].id
+             data = await that.getThumbnail(that.image.id)
+             that.gettingimg = false
+             that.image.name = reqnum
+             that.image.url = data['url']
              return
           }
       } catch(error){
@@ -118,7 +150,16 @@ export default {
       } catch(error){
         console.error(error)
       }
-    }
+    },
+    async generateLarge(){
+        let that = this;
+        this.loadLarge = true;
+        var resp = await fetch(this.largeUrl)
+        var data = await resp.json()
+        that.loadLarge = false;
+        console.log(data)
+        window.open(data['url'], '_blank');
+      }
   }
 }
 </script>

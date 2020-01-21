@@ -19,7 +19,7 @@
   </div>
 
       <div id="select-form" v-show="mode === 'select'">
-        <p class="is-size-4">Select a type of target?</p>
+        <p class="is-size-4">Select a type of target</p>
         <div class="level">
           <div class="level-item" v-for="item in object_types">
             <button v-on:click="whatsupObjects(item.avm)" class="button">{{ item.name }}</button>
