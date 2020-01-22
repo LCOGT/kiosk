@@ -29,7 +29,7 @@ function buildTarget(observation){
 
 function buildConfigs(observation){
   var configs = Array()
-  if (observation.coords.filters){
+  if (observation.coords.filters.length>0){
     for (var i=0;i<observation.coords.filters.length;i++){
       configs.push({'filter': observation.coords.filters[i].name,
                     'exposure': observation.coords.filters[i].exposure})
@@ -38,7 +38,7 @@ function buildConfigs(observation){
   }
   var planets = {
     'jupiter' : {'filter':'up', 'exposure':0.2},
-    'mars' : {'filter':'rp', 'exposure':5},
+    'mars' : {'filter':'rp', 'exposure':1},
     'uranus' :{'filter':'rp', 'exposure':5},
     'neptune' : {'filter':'rp', 'exposure':5},
     'mercury' : {'filter':'rp', 'exposure':5},
@@ -57,14 +57,13 @@ function buildConfigs(observation){
     } catch(error) {
       configs = [{'filter':'u', 'exposure':0.1}]
     }
-  } else if (observation.name.toLowerCase().substring(0,1) == 'm'){
+  } else {
     configs = [
       {'filter':'rp', 'exposure':90},
       {'filter':'B', 'exposure':90},
       {'filter':'V', 'exposure':90}
     ]
   }
-
   return configs
 }
 
