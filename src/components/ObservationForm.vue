@@ -1,22 +1,6 @@
 <template>
 
   <div id="observation-form" v-if="loggedin">
-    <div class="field">
-    <h3>Project Name: {{proposalName}} <a v-on:click="resetProposal" v-show="proposalName">[change]</a></h3>
-    <div class="control" v-show="!proposalName">
-      <div class="select">
-      <select v-model="observation.proposal">
-      <option disabled value="">Select your project</option>
-      <option v-for="proposal in proposals"
-        v-bind:value="proposal.value"
-        v-bind:key="proposal.id"
-        >
-        {{proposal.text}}
-      </option>
-      </select>
-    </div>
-    </div>
-  </div>
 
       <div id="select-form" v-show="mode === 'select'">
         <p class="is-size-4">Select a type of target</p>
@@ -34,7 +18,23 @@
           </div>
         </div>
       </div>
-
+      <div class="field">
+      <h3>Project Name: {{proposalName}}</h3>
+      <p><a v-on:click="resetProposal" v-show="proposalName" class="is-size-7">[change]</a></p>
+      <div class="control" v-show="!proposalName">
+        <div class="select">
+        <select v-model="observation.proposal">
+        <option disabled value="">Select your project</option>
+        <option v-for="proposal in proposals"
+          v-bind:value="proposal.value"
+          v-bind:key="proposal.id"
+          >
+          {{proposal.text}}
+        </option>
+        </select>
+      </div>
+      </div>
+    </div>
       <div class="columns is-multiline">
       <div class="column is-one-third" v-for="item in objects">
         <div class="box">

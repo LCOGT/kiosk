@@ -1,6 +1,6 @@
 # Kiosk
 
-Please put a description of the project here.
+Simple LCO observing portal. This portal is built on top of all the [API](https://developers.lco.global)s used and developed by LCO.
 
 ## Build
 
@@ -15,7 +15,7 @@ details.
 
 ## License
 
-Please put the license information here.
+This project is licensed under the GNU GPL v3. Please see the LICENSE file for further details.
 
 ## Project development setup
 ```
