@@ -154,12 +154,11 @@ export default {
           data = await response.json()
           that.image.count = data.count
           if (data.results != undefined && data.results.length >0){
-            that.image.id = data.results[0].id
+             that.image.id = data.results[0].id
              data = await that.getThumbnail(that.image.id)
              that.gettingimg = false
              that.image.name = observation.requests[0].configurations[0].target.name
              that.image.url = data['url']
-             that.image.id = observation.id
              return
           }
       } catch(error){
