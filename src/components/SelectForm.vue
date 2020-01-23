@@ -28,6 +28,9 @@ export default {
   }
   </script>
   <style scoped>
+  body {
+        font-family: 'Lato', sans-serif;
+  }
 ul {
     list-style-type: none;
   }

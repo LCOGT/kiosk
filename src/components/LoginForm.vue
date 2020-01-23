@@ -77,6 +77,9 @@ export default {
 </script>
 
 <style scoped>
+body {
+      font-family: 'Lato', sans-serif;
+}
 form {
   margin-bottom: 2rem;
 }

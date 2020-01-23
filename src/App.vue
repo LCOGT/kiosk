@@ -3,10 +3,18 @@
     id="app"
     class="container"
   >
-  <div id="header" class="is-size-4">
-    <h1  class="title">Kiosk</h1>
-  <img src="@/assets/LCO_logo.jpg" align="right"/>
-  </div>
+  <nav class="level" id="header">
+    <div class="level-left">
+        <p class="level-item has-text-centered">
+          <img src="@/assets/kiosk-logo.png" alt="Kiosk logo"/>
+        </p>
+    </div>
+    <div class="level-right">
+      <p class="level-item has-text-centered">
+        <img src="@/assets/LCO_logo.jpg" alt="LCO logo"/>
+      </p>
+    </div>
+  </nav>
     <login-form
     :loggedin="loggedin"
     @login:user="login"
@@ -201,13 +209,10 @@ h1 {
 body {
       font-family: 'Lato', sans-serif;
 }
-#header h1, #header img {
-  display:inline-block;
-}
-#header img{
-  max-width:25%;
-}
 
+#header img{
+  max-height:50px;
+}
 
 .small-container {
   max-width: 680px;

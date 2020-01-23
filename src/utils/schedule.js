@@ -29,7 +29,7 @@ function buildTarget(observation){
 
 function buildConfigs(observation){
   var configs = Array()
-  if (observation.coords.filters.length>0){
+  if (observation.coords.filters!=undefined && observation.coords.filters.length>0){
     for (var i=0;i<observation.coords.filters.length;i++){
       configs.push({'filter': observation.coords.filters[i].name,
                     'exposure': observation.coords.filters[i].exposure})

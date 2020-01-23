@@ -4,8 +4,8 @@
 
       <div id="select-form" v-show="mode === 'select'">
         <p class="is-size-4">Select a type of target</p>
-        <div class="level">
-          <div class="level-item" v-for="item in object_types">
+        <div class="buttons">
+          <div v-for="item in object_types">
             <button v-on:click="whatsupObjects(item.avm)" class="button">{{ item.name }}</button>
           </div>
         </div>
@@ -53,24 +53,28 @@
         </div>
       </div>
 
-    <div v-show="mode === 'manual'">
-
-      <label class="label">Target name</label>
-      <div class="field has-addons">
-        <div class="control">
-          <input
-            ref="first"
-            type="text"
-            :class="{ 'has-error': submitting }"
-            class="input"
-            v-model="object_name"
-            v-on:focus="clearStatus"
-          >
-        </div>
-        <div class="control">
-          <a class="button is-info" v-on:click="lookUp">
-            Search
-          </a>
+    <div v-show="mode === 'manual'" class="field is-horizontal">
+      <div class="field-label is-normal">
+        <label class="label">Target</label>
+      </div>
+      <div class="field-body">
+        <div class="field has-addons">
+          <div class="control">
+            <input
+              ref="first"
+              type="text"
+              :class="{ 'has-error': submitting }"
+              class="input"
+              v-model="object_name"
+              v-on:focus="clearStatus"
+              placeholder="Enter target name"
+            >
+          </div>
+          <div class="control">
+            <a class="button is-info" v-on:click="lookUp">
+              Search
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -100,12 +104,12 @@
     ><i class="fa fa-check"></i> Observation successfully submitted</p>
 
     <div class="field is-grouped">
-        <p class="control">
+      <div class="control">
         <button class="button  is-primary" v-on:click="handleSubmit">Submit</button>
-      </p>
-        <p class="control">
+      </div>
+      <div class="control">
         <button class="button  is-secondary" v-on:click="reset">Reset</button>
-      </p>
+      </div>
     </div>
   </div>
 </template>
@@ -139,7 +143,6 @@ export default {
         {"name":"Galaxy","avm":"5"},
         {"name":"Star Cluster", "avm":"3.6.4"},
         {"name":"Nebula", "avm":"4"},
-        // {"name":"Moon", "avm":"99"}
         ],
       object_type: '',
       objects: [],
@@ -147,7 +150,7 @@ export default {
       success: false,
       lookedup:false,
       lookupmsg: '',
-      planets: ['mercury','mars','venus','uranus','jupiter','neptune','saturn']
+      planets: ['mercury','venus','mars','jupiter','saturn','uranus','neptune']
     }
   },
   computed: {
@@ -351,6 +354,9 @@ export default {
 </script>
 
 <style scoped>
+body {
+      font-family: 'Lato', sans-serif;
+}
 ul {
   list-style-type: none;
 }

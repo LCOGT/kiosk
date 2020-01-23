@@ -169,6 +169,9 @@ export default {
 </script>
 
 <style scoped>
+body {
+      font-family: 'Lato', sans-serif;
+}
 button {
   margin: 0 0.5rem 0 0;
 }
