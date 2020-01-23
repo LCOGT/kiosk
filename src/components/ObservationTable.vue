@@ -1,15 +1,9 @@
 <template>
   <div id="observation-table" v-if="loggedin">
-    <h1 class="is-size-2">Past Observations</h1>
+    <h3 class="is-size-4">Past Observations</h3>
     <div v-if="gettingimg === false && image.url">
       <img :src="image.url" :alt="image.name"/>
       <div class="level">
-        <div class="level-item">
-          <div class="tags has-addons">
-            <span class="tag">Images</span>
-            <span class="tag is-primary">{{image.count}}</span>
-          </div>
-        </div>
         <div class="level-item">
           <button class="button" @click="generateLarge">
             <span class="icon is-small">
@@ -21,6 +15,18 @@
             </span>
             </span>
           </button>
+        </div>
+        <div class="level-item">
+          <div class="is-size-5">
+            <a :href="'https://observe.lco.global/requestgroups/'+image.id">{{image.name}}
+              <span class="is-size-7"><i class="far fa-external-link"></i></span>
+            </a></div>
+        </div>
+        <div class="level-item">
+          <div class="tags has-addons">
+            <span class="tag">Images</span>
+            <span class="tag is-primary">{{image.count}}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -53,7 +59,7 @@
           <td v-if='observation.state=="PENDING"'>
             <button @click="$emit('delete:observation', observation.id)" class="button is-warning">Cancel</button>
           <td v-else-if='observation.state=="COMPLETED"'>
-            <button @click="getframeid(observation.requests[0].id)" class="button is-info">Get Image</button>
+            <button @click="getframeid(observation)" class="button is-info">Get Image</button>
           <td v-else>
           </td>
 
@@ -77,6 +83,27 @@
           </span>
         </button>
       </p>
+      <div class="control">
+        <a class="button" v-on:click="$emit('getobservations', false, false)">
+          <i class="far fa-redo"></i>
+        </a>
+      </div>
+      <div class="field has-addons">
+        <div class="control">
+          <input
+            type="text"
+            class="input"
+            v-model="target_name"
+            v-on:focus=""
+            placeholder="Search your targets"
+          >
+        </div>
+        <div class="control">
+          <a class="button is-info" v-on:click="$emit('getobservations', false, false, target_name)">
+            <i class="far fa-search"></i>
+          </a>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -95,7 +122,8 @@ export default {
     return {
       gettingimg: null,
       image: {url:'',name:'',count:0, id:'',iscolour:false},
-      loadLarge: false
+      loadLarge: false,
+      target_name: undefined
     }
   },
   computed: {
@@ -116,9 +144,10 @@ export default {
                   'CANCELED': 'fa-ban'};
       return icon[state]
     },
-    async getframeid(reqnum){
+    async getframeid(observation){
       let that = this;
       var data
+      var reqnum = observation.requests[0].id
       that.gettingimg = true
       try {
           const response = await fetch(`https://archive-api.lco.global/frames/?ordering=-id&limit=1&REQNUM=${reqnum}`)
@@ -128,8 +157,9 @@ export default {
             that.image.id = data.results[0].id
              data = await that.getThumbnail(that.image.id)
              that.gettingimg = false
-             that.image.name = reqnum
+             that.image.name = observation.requests[0].configurations[0].target.name
              that.image.url = data['url']
+             that.image.id = observation.id
              return
           }
       } catch(error){

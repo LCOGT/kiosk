@@ -18,23 +18,7 @@
           </div>
         </div>
       </div>
-      <div class="field">
-      <h3>Project Name: {{proposalName}}</h3>
-      <p><a v-on:click="resetProposal" v-show="proposalName" class="is-size-7">[change]</a></p>
-      <div class="control" v-show="!proposalName">
-        <div class="select">
-        <select v-model="observation.proposal">
-        <option disabled value="">Select your project</option>
-        <option v-for="proposal in proposals"
-          v-bind:value="proposal.value"
-          v-bind:key="proposal.id"
-          >
-          {{proposal.text}}
-        </option>
-        </select>
-      </div>
-      </div>
-    </div>
+
       <div class="columns is-multiline">
       <div class="column is-one-third" v-for="item in objects">
         <div class="box">
@@ -125,7 +109,8 @@ export default {
     obs: Object,
     message: String,
     mode: String,
-    token: String
+    token: String,
+    default_proposal:String
   },
   data() {
     return {
@@ -157,14 +142,6 @@ export default {
     errorMsg() {
       return this.message
     },
-    proposalName(){
-      for (var i=0;i<this.proposals.length;i++){
-          if (this.proposals[i].value == this.observation.proposal){
-            this.error = ''
-            return this.proposals[i].text
-          }
-      };
-    },
     targetIcon() {
       var icons = {'planet':'fas fa-planet-ringed',
       '5':'fas fa-galaxy',
@@ -174,9 +151,6 @@ export default {
     }
   },
   methods: {
-    resetProposal() {
-      this.observation.proposal = undefined
-    },
     reset(){
       this.clearStatus()
       this.$emit('changemode', 'start')
@@ -238,6 +212,7 @@ export default {
     async handleSubmit() {
       this.submitting = true
       this.submitted = true
+      this.observation.proposal = this.default_proposal
 
       if (!this.observation.name) {
         this.submitting = false
@@ -335,7 +310,7 @@ export default {
       var url = `https://whatsup.lco.global/range/?start=${startstamp}&aperture=0m4&end=${endstamp}&category=${avm}&format=json`;
       const response = await fetch(url, requestOptions)
       var data = await response.json()
-      this.objects = data.targets.slice(0,8)
+      this.objects = data.targets.slice(0,6)
     },
     selectObject(data){
       this.error = ''

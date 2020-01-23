@@ -11,7 +11,7 @@
     </div>
     <div class="level-right">
       <p class="level-item has-text-centered">
-        <img src="@/assets/LCO_logo.jpg" alt="LCO logo"/>
+        <a href="https://lco.global" title="LCO website"><img src="@/assets/LCO_logo.jpg" alt="LCO logo"/></a>
       </p>
     </div>
   </nav>
@@ -26,11 +26,14 @@
      :mode="mode"
      :loggedin="loggedin"
      :message="message"
+     :default_proposal="default_proposal"
+     :proposals="proposals"
      @changemode="changeMode"
+     @changeproposal="changeProposal"
      />
     <observation-form
     :mode="mode"
-    :proposals="proposals"
+    :default_proposal="default_proposal"
     :loggedin="loggedin"
     :message="message"
     :token="token"
@@ -97,19 +100,23 @@ export default {
   },
 
   methods: {
-    async getObservations(next=false, prev=false) {
+    changeProposal(code=undefined){
+      this.default_proposal = code
+    },
+    async getObservations(next=false, prev=false, target_name=undefined) {
       try {
         const requestOptions = {
             method: 'GET',
             headers: this.authHeader()
         };
-        var url
+        var url = `https://observe.lco.global/api/requestgroups/?user=${this.user}`
+
         if (this.next_obs && next){
           url = this.next_obs
         }else if (this.prev_obs && prev){
           url = this.prev_obs
-        } else {
-          url = `https://observe.lco.global/api/requestgroups/?user=${this.user}`
+        }else if (target_name) {
+          url = `${url}&target=${target_name}`
         }
         const response = await fetch(url, requestOptions)
         const data = await response.json()
