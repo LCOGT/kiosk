@@ -18,7 +18,7 @@
         </div>
         <div class="level-item">
           <div class="is-size-5">
-            <a :href="'https://observe.lco.global/requestgroups/'+image.id">{{image.name}}
+            <a :href="'https://observe.lco.global/requestgroups/'+image.id" target="_blank">{{image.name}}
               <span class="is-size-7"><i class="far fa-external-link"></i></span>
             </a></div>
         </div>
@@ -54,7 +54,7 @@
           :key="observation.id"
           v-for="observation in observations"
         >
-          <td><a :href="'https://observe.lco.global/requestgroups/'+observation.id">{{observation.requests[0].configurations[0].target.name}}</a></td>
+          <td><a :href="'https://observe.lco.global/requestgroups/'+observation.id" target="_blank">{{observation.requests[0].configurations[0].target.name}}</a></td>
           <td :title="observation.state"><i class='far' v-bind:class="statusIcon(observation.state)"></i>
           <td v-if='observation.state=="PENDING"'>
             <button @click="$emit('delete:observation', observation.id)" class="button is-warning">Cancel</button>
@@ -154,16 +154,24 @@ export default {
           data = await response.json()
           that.image.count = data.count
           if (data.results != undefined && data.results.length >0){
-             that.image.id = data.results[0].id
-             data = await that.getThumbnail(that.image.id)
+             that.image.id = observation.id
+             that.image.frameid = data.results[0].id
+             data = await that.getThumbnail(that.image.frameid)
              that.gettingimg = false
              that.image.name = observation.requests[0].configurations[0].target.name
              that.image.url = data['url']
              return
+          } else {
+            that.gettingimg = false
+            that.image.url = 'https://via.placeholder.com/600x200?text=No+Image+Data+Found'
+            return
           }
+
       } catch(error){
         console.error(error)
-        return '0'
+        that.gettingimg = false
+        that.image.url = 'https://via.placeholder.com/600x200?text=Error'
+        return
       }
     },
     async getThumbnail(frameid) {

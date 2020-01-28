@@ -66,7 +66,7 @@
       v-if="error"
       class="error-message"
     ><i class="fad fa-exclamation-triangle"></i>{{error}}</p>
-    <div id="object-info" v-if="observation.name">
+    <div id="object-info" v-if="observation.name && !error">
       <h3 class="is-size-4 success-message"><i class="fa fa-check"></i> {{observation.name}} selected</h3>
     </div>
     <p
@@ -206,7 +206,7 @@ export default {
           }
         }
       } catch (error) {
-        this.error = error.response
+        this.error = "Target could not be found"
       }
     },
     async handleSubmit() {
