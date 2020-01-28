@@ -129,7 +129,7 @@ export default {
   computed: {
     largeUrl: function() {
         if (this.image) {
-          return `https://thumbnails.lco.global/${this.image.id}/?width=4000&height=4000&color=${this.image.iscolour}`;
+          return `https://thumbnails.lco.global/${this.image.frameid}/?width=4000&height=4000&color=${this.image.iscolour}`;
         } else {
           return '';
         }
