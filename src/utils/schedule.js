@@ -121,9 +121,14 @@ export function  buildRequest(observation){
 
 function setWindows() {
   var start = new Date();
-  var end = new Date();
+  if ((start.getMonth() == 5 || start.getMonth == 11) && start.getDate() >= 24){
+    start.setDate(1)
+    start.setMonth(start.getMonth()+1)
+  }
+  var end = new Date(start);
+  end.setDate( start.getDate() + 7 );
   start = start.toISOString().substring(0,19);
-  end.setDate( end.getDate() + 7 );
   end = end.toISOString().substring(0,19);
+
   return {'start' : start, 'end':end}
 }
