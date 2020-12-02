@@ -17,42 +17,17 @@
   </nav>
     <login-form
     :loggedin="loggedin"
-    @login:user="login"
+    @login:user="login-form"
     @logout:user="logout"
      />
    <div class="columns">
      <div class="column is-half">
-     <select-form
-     :mode="mode"
-     :loggedin="loggedin"
-     :message="message"
-     :default_proposal="default_proposal"
-     :proposals="proposals"
-     @changemode="changeMode"
-     @changeproposal="changeProposal"
-     />
-    <observation-form
-    :mode="mode"
-    :default_proposal="default_proposal"
-    :loggedin="loggedin"
-    :message="message"
-    :token="token"
-    @changemode="changeMode"
-    @changemessage="changeMessage"
-    @getobservations="getObservations"
-    />
-  </div>
-  <div class="column is-half">
-    <observation-table
-      :observations="observations"
-      :proposals="proposals"
-      :loggedin="loggedin"
-      :next_obs="next_obs"
-      :prev_obs="prev_obs"
-      @delete:observation="deleteObservation"
-      @getobservations="getObservations"
-    />
-  </div>
+       <select-form />
+       <observation-form />
+     </div>
+     <div class="column is-half">
+      <observation-table />
+     </div>
   </div>
 </div>
 </template>
@@ -63,6 +38,11 @@ import ObservationForm from '@/components/ObservationForm.vue'
 import LoginForm from '@/components/LoginForm.vue'
 import SelectForm from '@/components/SelectForm.vue'
 import "../node_modules/bulma/bulma.sass";
+import { USER_REQUEST } from "actions/user";
+import { mapGetters, mapState } from "vuex";
+import axios from 'axios'
+import Vue from "vue";
+
 
 export default {
   name: "app",
@@ -72,6 +52,11 @@ export default {
     LoginForm,
     SelectForm,
   },
+  created: function() {
+    if (this.$store.getters.isAuthenticated) {
+      this.$store.dispatch(USER_REQUEST);
+    }
+  },
   data() {
     return {
       observations: [],
@@ -79,37 +64,30 @@ export default {
       default_proposal:'',
       loggedin:false,
       token:undefined,
-      user:undefined,
       obs:undefined,
       archive:undefined,
       message: '',
       success: false,
       mode:'',
       next_obs: '',
-      prev_obs:''
+      prev_obs:'',
+      user:''
     }
   },
 
   mounted() {
-    if (localStorage.getItem("lco_token")){
-      this.token = localStorage.getItem("lco_token");
+    if (this.$store.getters.isAuthenticated){
       this.loggedin = true;
-      this.getProposals();
-      this.getObservations();
     }
   },
-
   methods: {
-    changeProposal(code=undefined){
-      this.default_proposal = code
-    },
     async getObservations(next=false, prev=false, target_name=undefined) {
       try {
         const requestOptions = {
             method: 'GET',
             headers: this.authHeader()
         };
-        var url = `https://observe.lco.global/api/requestgroups/?user=${this.user}`
+        var url = `https://observe.lco.global/api/requestgroups/?user={this.$store.state.user.profile.user}`
 
         if (this.next_obs && next){
           url = this.next_obs
@@ -142,68 +120,11 @@ export default {
         console.error(error.response)
       }
     },
-    async getProposals() {
-      try {
-        const requestOptions = {
-            method: 'GET',
-            headers: this.authHeader()
-        };
-        const response = await this.$http.get('https://observe.lco.global/api/profile/', requestOptions)
-        const data = await response.data
-        this.handleProfile(data)
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    async login(username, password) {
-        const requestOptions = {
-            method: 'post',
-            headers: { 'Content-Type': 'application/json' },
-            data: { username, password },
-            url: 'https://observe.lco.global/api/api-token-auth/',
-        };
-
-        const response = await this.$http(requestOptions)
-        const data = await response.data
-        // login successful if there's a user in the response
-        if (data['token']) {
-            this.mode = 'start'
-            this.user = username;
-            this.loggedin = true;
-            this.token = data['token'];
-            localStorage.setItem("lco_token", this.token );
-            await this.getProposals()
-            this.getObservations()
-        }
-    },
     logout() {
         // remove user from local storage to log user out
         this.user = undefined;
         this.loggedin = false;
         localStorage.removeItem("lco_token");
-    },
-    handleProfile(data){
-        var proposals = new Array;
-        for (var i=0; i<data.proposals.length;i++){
-          if (data.proposals[i].current){
-            proposals.push({'text':data.proposals[i].title,'value':data.proposals[i].id})
-          }
-        }
-        this.archive = data.tokens.archive;
-        this.proposals = proposals;
-        if (proposals.length == 1){
-          this.default_proposal = proposals[0]
-        }
-        this.user = data.username;
-    },
-    changeMode(mode){
-      this.mode = mode
-    },
-    changeMessage(message){
-      this.message = null
-    },
-    authHeader() {
-      return { 'Authorization': 'Token '+this.token};
     }
   },
 }

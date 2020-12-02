@@ -1,8 +1,8 @@
 <template>
 
-  <div id="observation-form" v-if="loggedin">
+  <div id="observation-form" v-if="isAuthenticated">
 
-      <div id="select-form" v-show="mode === 'select'">
+      <div id="select-form" v-show="getMode == 'select'">
         <p class="is-size-4">Select a type of target</p>
         <div class="buttons">
           <div v-for="item in object_types">
@@ -37,7 +37,7 @@
         </div>
       </div>
 
-    <div v-show="mode === 'manual'" class="field is-horizontal">
+    <div v-show="getMode == 'manual'" class="field is-horizontal">
       <div class="field-label is-normal">
         <label class="label">Target</label>
       </div>
@@ -100,6 +100,8 @@
 
 <script>
 import { buildRequest } from '../utils/schedule.js'
+import { mapGetters } from "vuex";
+
 
 export default {
   name: 'observation-form',
@@ -150,10 +152,13 @@ export default {
       return icons[this.object_type]
     }
   },
+  computed: {
+    ...mapGetters(["isAuthenticated", "currentProposalName","defaultProposal", "getProfile", "getMode"])
+  },
   methods: {
     reset(){
       this.clearStatus()
-      this.$emit('changemode', 'start')
+      this.$store.commit('modeStart')
     },
     async lookUp(name='') {
 
