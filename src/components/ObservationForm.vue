@@ -62,26 +62,22 @@
         </div>
       </div>
     </div>
-    <p
-      v-if="error"
-      class="error-message"
-    ><i class="fad fa-exclamation-triangle"></i>{{error}}</p>
-    <div id="object-info" v-if="observation.name && !error">
+    <div id="object-info" v-if="observation.name && !getError">
       <h3 class="is-size-4 success-message"><i class="fa fa-check"></i> {{observation.name}} selected</h3>
     </div>
     <p
-      v-if="lookedup"
+      v-if="getInfo"
       class="success-message"
-    ><i :class="targetIcon"></i> {{lookupmsg}}<br/>
+    ><i :class="targetIcon"></i> {{getInfo}}<br/>
     </p>
     <p
-      v-if="submitting && !error && !errorMsg"
+      v-if="submitting && !getError"
       class="pending-message"
     ><i class="fas fa-spinner fa-spin"></i> Sending to scheduler</p>
     <p
-      v-if="errorMsg && submitted"
+      v-if="getError && submitted"
       class="error-message"
-    ><i class="fad fa-exclamation-triangle"></i>{{errorMsg}}</p>
+    ><i class="fad fa-exclamation-triangle"></i>{{getError}}</p>
     <p
       v-if="success"
       class="success-message"
@@ -100,20 +96,12 @@
 
 <script>
 import { buildRequest } from '../utils/schedule.js'
-import { mapGetters } from "vuex";
+import { mapState, mapGetters } from "vuex";
+import axios from "axios";
 
 
 export default {
   name: 'observation-form',
-  props: {
-    proposals: Array,
-    loggedin: Boolean,
-    obs: Object,
-    message: String,
-    mode: String,
-    token: String,
-    default_proposal:String
-  },
   data() {
     return {
       submitted: false,
@@ -133,28 +121,23 @@ export default {
         ],
       object_type: '',
       objects: [],
-      error:'',
       success: false,
       lookedup:false,
-      lookupmsg: '',
       planets: ['mercury','venus','mars','jupiter','saturn','uranus','neptune']
     }
   },
   computed: {
-    errorMsg() {
-      return this.message
-    },
     targetIcon() {
       var icons = {'planet':'fas fa-planet-ringed',
       '5':'fas fa-galaxy',
       '4':'fad fa-smoke',
       '3.6.4':'fas fa-stars'}
       return icons[this.object_type]
-    }
+    },
+    ...mapGetters(["isAuthenticated", "currentProposalName","defaultProposal",
+                   "getProfile", "getMode", "getInfo", "getError", "authHeader"])
   },
-  computed: {
-    ...mapGetters(["isAuthenticated", "currentProposalName","defaultProposal", "getProfile", "getMode"])
-  },
+
   methods: {
     reset(){
       this.clearStatus()
@@ -187,19 +170,19 @@ export default {
           whatsup = true
         }
         if (data) {
-          if (data.error){
-            this.error = data.error
+          if (data.error != undefined){
+            this.$store.commit('updateError',data.error)
           } else {
             if (whatsup){
               var ra = data.target.ra
               var dec = data.target.dec
               var filters = data.target.filters
-              this.lookupmsg = data.target.desc
+              this.$store.commit('updateInfo',data.target.desc)
             } else {
               var ra = data.ra_d
               var dec = data.dec_d
               var filters = []
-              this.lookupmsg = "Coordinates found"
+              this.$store.commit('updateInfo',"Coordinates found")
             }
             if (target_type == 'non_sidereal'){
               this.observation.coords = data
@@ -211,57 +194,48 @@ export default {
           }
         }
       } catch (error) {
-        this.error = "Target could not be found"
+        this.$store.commit('updateError',"Target could not be found")
       }
     },
     async handleSubmit() {
       this.submitting = true
       this.submitted = true
-      this.observation.proposal = this.default_proposal
+      this.observation.proposal = this.$store.getters.defaultProposal
 
       if (!this.observation.name) {
         this.submitting = false
-        this.error = 'You must type a valid object name'
+        this.$store.commit('updateError','You must type a valid object name')
         return
       }
       if (!this.observation.proposal) {
         this.submitting = false
-        this.error = 'Please select your project'
+        this.$store.commit('updateError','Please select your project')
         return
       }
       var data = buildRequest(this.observation)
       await this.addObservation(data)
-        .then( (resp) => {
-          if (resp){
-            this.clearStatus()
-            this.$emit('changemode', 'start')
-            this.success = true
-            this.$emit('getobservations')
-          }
-          this.submitting = false
-      });
     },
-    async addObservation(observation) {
-      this.error = ''
-      try {
-        const requestOptions = {
+    addObservation(observation) {
+      this.$store.commit('updateError','')
+        var requestOptions = {
           method: 'POST',
           data: observation,
-          headers: { 'Authorization': 'Token '+this.token},
-          dataType: 'json',
-          contentType: 'application/json'}
-        const response = await this.$http('https://observe.lco.global/api/requestgroups/',requestOptions);
-
-        // this.observations = [...this.observations, data]
-        if (response.status == 200 || response.status == 201){
-          const data = await response.data
-          return data
-        } else {
-          this.error = response
-          return false
+          url: 'https://observe.lco.global/api/requestgroups/'
         }
-      } catch (error) {
-        await error
+        axios(requestOptions)
+          .then( response => {
+            if (response.status == 200 || response.status == 201){
+              this.clearStatus()
+              this.$store.commit('modeStart')
+              this.success = true
+              this.$store.dispatch('USER_OBSERVATIONS')
+              return response.data
+            } else {
+              this.$store.commit('updateError',response)
+              return false
+            }
+          })
+      .catch((error) => {
         console.log(error)
         var req  = error.response.data.requests
         if (req){
@@ -271,26 +245,24 @@ export default {
               txt = req[i]['non_field_errors'][0]
             }
           }
-          this.error = txt
+          this.$store.commit('updateError',txt)
         } else {
-          this.error = 'There was a problem submitting this request'
+          this.$store.commit('updateError','There was a problem submitting this request')
         }
-        return false
-      }
+      })
     },
     clearStatus() {
       this.success = false
       this.lookedup = false
-      this.lookupmsg = ''
+      this.$store.commit('updateInfo','')
       this.submitting = false
-      this.error = ''
+      this.$store.commit('updateError','')
       this.errorSubmit = ''
       this.objects = []
       this.object_type = null
       this.submitted = false
       this.observation.name = ''
       this.observation.desc = ''
-      this.$emit('changemessage', '')
     },
     async whatsupObjects (avm) {
       this.clearStatus()
@@ -318,11 +290,11 @@ export default {
       this.objects = data.targets.slice(0,6)
     },
     selectObject(data){
-      this.error = ''
+      this.$store.commit('updateError','')
       this.objects = []
       this.observation.type = 'sidereal'
       this.observation.name = data.name
-      this.lookupmsg = data.desc
+      this.$store.commit('updateInfo',data.desc)
       this.lookedup = true
       this.observation.coords = {
           'ra'  : data.ra,

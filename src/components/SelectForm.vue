@@ -1,6 +1,6 @@
 <template>
 
-  <div id="select-form" >
+  <div id="select-form" v-if="isAuthenticated">
     <div class="field">
     <h3 class="is-size-4">Project: {{currentProposalName}}</h3>
     <p><a v-on:click="resetProposal" v-show="currentProposalName" class="is-size-7">[change]</a></p>
@@ -17,6 +17,12 @@
       </select>
     </div>
     </div>
+  </div>
+
+  <div>
+    <p>
+      Logged in as: <em>{{getProfile.user}}</em> <a v-on:click="logout" class="is-size-7">[log out]</a>
+    </p>
   </div>
 
     <div class="buttons"  v-show="getMode =='start'">
@@ -42,7 +48,7 @@ export default {
         }
     },
     computed: {
-      ...mapGetters(["currentProposalName", "proposalsLoaded", "defaultProposal", "getProfile", "getMode"]),
+      ...mapGetters(["isAuthenticated","currentProposalName", "proposalsLoaded", "defaultProposal", "getProfile", "getMode"]),
       ...mapState({ proposals: state => state.user.profile.proposals })
     },
 
@@ -58,6 +64,9 @@ export default {
       },
       setMode(mode) {
         this.$store.commit(mode)
+      },
+      logout(){
+        this.$store.commit('AUTH_LOGOUT')
       }
     }
   }

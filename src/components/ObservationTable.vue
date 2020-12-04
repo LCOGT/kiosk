@@ -1,5 +1,5 @@
 <template>
-  <div id="observation-table" v-if="loggedin">
+  <div id="observation-table" v-if="isAuthenticated">
     <h3 class="is-size-4">Past Observations</h3>
     <div v-if="gettingimg === false && image.url">
       <img :src="image.url" :alt="image.name"/>
@@ -36,7 +36,7 @@
       </div>
     </div>
     <p
-      v-if="observations.length < 1"
+      v-if="observations == undefined"
       class="empty-table"
     >
       No observations
@@ -110,11 +110,11 @@
 </template>
 
 <script>
+import { mapState, mapGetters } from "vuex";
+
 export default {
   name: 'observation-table',
   props: {
-    observations: Array,
-    loggedin: Boolean,
     next_obs: String,
     prev_obs: String
   },
@@ -133,7 +133,9 @@ export default {
         } else {
           return '';
         }
-      }
+      },
+      ...mapState({ observations: state => state.user.observations.results }),
+    ...mapGetters(["isAuthenticated", "currentProposalName","defaultProposal", "getProfile", "getMode", "getInfo", "getError"])
   },
   methods: {
     statusIcon(state){

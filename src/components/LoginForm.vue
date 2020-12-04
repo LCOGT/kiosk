@@ -1,5 +1,5 @@
 <template>
-  <div id="login-form"  v-if="loggedin == false">
+  <div id="login-form"  v-if="!isAuthenticated">
     <form @submit.prevent="login">
 
       <label class="label">Username</label>
@@ -34,6 +34,7 @@
 <script>
 import { AUTH_REQUEST } from "actions/auth";
 import { changeProposal } from "actions/user";
+import { mapGetters } from "vuex";
 
 export default {
   name: 'login-form',
@@ -61,6 +62,7 @@ export default {
       invalidUsername() {
         return this.username === ''
       },
+      ...mapGetters(["isAuthenticated"])
     },
     methods: {
        login: function () {

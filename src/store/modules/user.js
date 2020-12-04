@@ -2,15 +2,17 @@ import { USER_REQUEST, USER_OBSERVATIONS, USER_OBS_SUCCESS, USER_ERROR, USER_SUC
 import Vue from "vue";
 import { AUTH_LOGOUT } from "../actions/auth";
 import apiCall from "utils/api";
-import axios from 'axios'
+import axios from 'axios';
 
-const state = { status: "", profile: {}, observations:{}, mode:'' };
+const state = { status: "", profile: {}, observations:{}, mode:'', messages:{'error':'','info':''} };
 
 const getters = {
   getMode: state => state.mode,
   getProfile: state => state.profile,
   proposalsLoaded: state => !!state.profile.proposals,
   defaultProposal: state => state.profile.default_proposal,
+  getInfo: state => state.messages.info,
+  getError: state => state.messages.error,
   currentProposalName (state) {
     if (state.profile.proposals == undefined){
       return null
@@ -46,7 +48,8 @@ const actions = {
           'archive' : resp.data.tokens.archive,
           'proposals' : proposals
        }
-        commit(USER_SUCCESS, data);
+       commit(USER_SUCCESS, data);
+       dispatch(USER_OBSERVATIONS);
       })
       .catch((err) => {
         console.log(err)
@@ -55,26 +58,23 @@ const actions = {
         dispatch(AUTH_LOGOUT);
       });
   },
-  [USER_OBSERVATIONS]: ({ commit, dispatch }) => {
+  [USER_OBSERVATIONS]: ({ commit, dispatch, getters }, payload) => {
     commit(USER_OBSERVATIONS);
+    console.log(getters.getProfile)
     axios.defaults.headers.common['Authorization'] = 'Token '+ localStorage.getItem('user-token');
-    var url = `https://observe.lco.global/api/requestgroups/?user={state.user}`;
-    if (this.next_obs && next){
-      url = this.next_obs
-    }else if (this.prev_obs && prev){
-      url = this.prev_obs
-    }else if (target_name) {
-      url = `${url}&target=${target_name}`
+    var url = 'https://observe.lco.global/api/requestgroups/?user=' + getters.getProfile.user;
+    if (payload != undefined){
+      if (payload.next_obs){
+        url = payload.next_obs
+      }else if (payload.prev_obs){
+        url = payload.prev_obs
+      }else if (payload.target_name) {
+        url = `${url}&target=${payload.target_name}`
+      }
     }
-    axios({url: 'https://observe.lco.global/api/profile', method:"GET"})
+    axios({url: url, method:"GET"})
       .then(resp => {
-        var data = {
-          'user':resp.data.username,
-          'default_proposal': default_proposal,
-          'archive' : resp.data.tokens.archive,
-          'proposals' : proposals
-       }
-        commit(USER_OBS_SUCCESS, data);
+        commit(USER_OBS_SUCCESS, resp.data);
       })
       .catch((err) => {
         console.log(err)
@@ -123,6 +123,12 @@ const mutations = {
   },
   modeReset: state => {
     state.mode = ''
+  },
+  updateInfo: (state, msg) => {
+    state.messages.info = msg
+  },
+  updateError: (state, msg) => {
+    state.messages.error = msg
   }
 };
 
