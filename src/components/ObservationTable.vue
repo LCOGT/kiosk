@@ -5,7 +5,7 @@
       <img :src="image.url" :alt="image.name"/>
       <div class="level">
         <div class="level-item">
-          <button class="button" @click="generateLarge">
+          <button class="button" v-on:click="generateLarge(image)">
             <span class="icon is-small">
               <span v-if="loadLarge">
                 <i class="fa fa-spin fa-spinner"></i>
@@ -57,9 +57,9 @@
           <td><a :href="'https://observe.lco.global/requestgroups/'+observation.id" target="_blank">{{observation.requests[0].configurations[0].target.name}}</a></td>
           <td :title="observation.state"><i class='far' v-bind:class="statusIcon(observation.state)"></i>
           <td v-if='observation.state=="PENDING"'>
-            <button @click="$emit('delete:observation', observation.id)" class="button is-warning">Cancel</button>
+            <button v-on:click="cancelObservation(observation.id)" class="button is-warning">Cancel</button>
           <td v-else-if='observation.state=="COMPLETED"'>
-            <button @click="getframeid(observation)" class="button is-info">Get Image</button>
+            <button v-on:click="getframeid(observation)" class="button is-info">Get Image</button>
           <td v-else>
           </td>
 
@@ -111,6 +111,7 @@
 
 <script>
 import { mapState, mapGetters } from "vuex";
+import axios from 'axios';
 
 export default {
   name: 'observation-table',
@@ -134,8 +135,9 @@ export default {
           return '';
         }
       },
-      ...mapState({ observations: state => state.user.observations.results }),
-    ...mapGetters(["isAuthenticated", "currentProposalName","defaultProposal", "getProfile", "getMode", "getInfo", "getError"])
+      ...mapState({ observations: state => state.user.observations.results,
+                    archive_token: state => state.user.profile.archive}),
+    ...mapGetters(["isAuthenticated", "authHeader","archiveHeader", "getProfile", "getMode", "getInfo", "getError"])
   },
   methods: {
     statusIcon(state){
@@ -146,35 +148,37 @@ export default {
                   'CANCELED': 'fa-ban'};
       return icon[state]
     },
-    async getframeid(observation){
+    getframeid(observation){
       let that = this;
       var data
       var reqnum = observation.requests[0].id
       that.gettingimg = true
-      try {
-          const response = await fetch(`https://archive-api.lco.global/frames/?ordering=-id&limit=1&REQNUM=${reqnum}`)
-          data = await response.json()
+      var url = `https://archive-api.lco.global/frames/?ordering=-id&limit=1&REQNUM=${reqnum}`
+      axios({url:url, method:"GET", headers:this.$store.getters.archiveHeader})
+          .then( resp => {
+          var data = resp.data
           that.image.count = data.count
           if (data.results != undefined && data.results.length >0){
              that.image.id = observation.id
              that.image.frameid = data.results[0].id
-             data = await that.getThumbnail(that.image.frameid)
-             that.gettingimg = false
-             that.image.name = observation.requests[0].configurations[0].target.name
-             that.image.url = data['url']
-             return
+             that.getThumbnail(that.image.frameid)
+             .then(resp => {
+               that.gettingimg = false
+               that.image.name = observation.requests[0].configurations[0].target.name
+               that.image.url = resp['url']
+             })
           } else {
             that.gettingimg = false
             that.image.url = 'https://via.placeholder.com/600x200?text=No+Image+Data+Found'
             return
           }
-
-      } catch(error){
+      })
+      .catch((error) => {
         console.error(error)
         that.gettingimg = false
         that.image.url = 'https://via.placeholder.com/600x200?text=Error'
         return
-      }
+      })
     },
     async getThumbnail(frameid) {
       let that = this;
@@ -194,14 +198,29 @@ export default {
         console.error(error)
       }
     },
-    async generateLarge(){
+    async generateLarge(image){
         let that = this;
         this.loadLarge = true;
-        var resp = await fetch(this.largeUrl)
+        var url;
+        if (image) {
+          url = `https://thumbnails.lco.global/${image.frameid}/?width=4000&height=4000&color=${image.iscolour}`;
+        } else {
+          url = '';
+        }
+        var resp = await fetch(url)
         var data = await resp.json()
         that.loadLarge = false;
-        console.log(data)
         window.open(data['url'], '_blank');
+      },
+      cancelObservation(id) {
+        var url = `https://observe.lco.global/api/requestgroups/${id}/cancel/`
+        axios({url:url, method:"POST", headers:this.$store.getters.authHeader})
+          .then( resp => {
+            this.$store.dispatch('USER_OBSERVATIONS')
+          })
+        .catch( error => {
+          console.error(error.response)
+        })
       }
   }
 }

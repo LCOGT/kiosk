@@ -66,7 +66,7 @@ export default {
         this.$store.commit(mode)
       },
       logout(){
-        this.$store.commit('AUTH_LOGOUT')
+        this.$store.dispatch('AUTH_LOGOUT')
       }
     }
   }

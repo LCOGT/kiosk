@@ -28,8 +28,8 @@ const getters = {
 const actions = {
   [USER_REQUEST]: ({ commit, dispatch }) => {
     commit(USER_REQUEST);
-    axios.defaults.headers.common['Authorization'] = 'Token '+ localStorage.getItem('user-token');
-    axios({url: 'https://observe.lco.global/api/profile', method:"GET"})
+    var headers = {'Authorization' : 'Token '+ localStorage.getItem('user-token')};
+    axios({url: 'https://observe.lco.global/api/profile', method:"GET", headers: headers})
       .then(resp => {
         var proposals = new Array;
 
@@ -45,7 +45,6 @@ const actions = {
         var data = {
           'user':resp.data.username,
           'default_proposal': default_proposal,
-          'archive' : resp.data.tokens.archive,
           'proposals' : proposals
        }
        commit(USER_SUCCESS, data);
@@ -57,11 +56,11 @@ const actions = {
         // if resp is unauthorized, logout, to
         dispatch(AUTH_LOGOUT);
       });
+
   },
   [USER_OBSERVATIONS]: ({ commit, dispatch, getters }, payload) => {
     commit(USER_OBSERVATIONS);
-    console.log(getters.getProfile)
-    axios.defaults.headers.common['Authorization'] = 'Token '+ localStorage.getItem('user-token');
+    // axios.defaults.headers.common['Authorization'] = 'Token '+ localStorage.getItem('user-token');
     var url = 'https://observe.lco.global/api/requestgroups/?user=' + getters.getProfile.user;
     if (payload != undefined){
       if (payload.next_obs){
@@ -72,7 +71,7 @@ const actions = {
         url = `${url}&target=${payload.target_name}`
       }
     }
-    axios({url: url, method:"GET"})
+    axios({url: url, method:"GET", headers:getters.authHeader})
       .then(resp => {
         commit(USER_OBS_SUCCESS, resp.data);
       })

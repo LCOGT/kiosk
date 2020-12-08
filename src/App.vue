@@ -105,21 +105,6 @@ export default {
         console.log(error)
       }
     },
-    async deleteObservation(id) {
-      const requestOptions = {
-        method: 'POST',
-        headers: this.authHeader(),
-        dataType: 'json',
-        contentType: 'application/json'}
-      try {
-        var response = await this.$http(`https://observe.lco.global/api/requestgroups/${id}/cancel/`, requestOptions)
-        if (response){
-          this.getObservations()
-        }
-      } catch (error) {
-        console.error(error.response)
-      }
-    },
     logout() {
         // remove user from local storage to log user out
         this.user = undefined;

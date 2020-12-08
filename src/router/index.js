@@ -33,9 +33,9 @@ export default new Router({
     },
     {
       path: "/account",
-      name: "Account",
-      component: Account,
-      beforeEnter: ifAuthenticated
+      name: "Admin",
+      component: Admin,
+      beforeEnter: ifPi
     },
     {
       path: "/login",
