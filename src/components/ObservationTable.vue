@@ -142,7 +142,7 @@ export default {
       return icon[state]
     },
     getObservations(payload) {
-      this.$store.dispatch(USER_OBSERVATIONS, payload)
+      this.$store.dispatch('USER_OBSERVATIONS', payload)
     },
     getframeid(observation){
       let that = this;
