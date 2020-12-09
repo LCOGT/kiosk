@@ -60,15 +60,14 @@ const actions = {
   },
   [USER_OBSERVATIONS]: ({ commit, dispatch, getters }, payload) => {
     commit(USER_OBSERVATIONS);
-    // axios.defaults.headers.common['Authorization'] = 'Token '+ localStorage.getItem('user-token');
     var url = 'https://observe.lco.global/api/requestgroups/?user=' + getters.getProfile.user;
     if (payload != undefined){
-      if (payload.next_obs){
-        url = payload.next_obs
-      }else if (payload.prev_obs){
-        url = payload.prev_obs
-      }else if (payload.target_name) {
-        url = `${url}&target=${payload.target_name}`
+      if (payload.next != undefined){
+        url = payload.next
+      }else if (payload.prev!= undefined){
+        url = payload.prev
+      }else if (payload.target!= undefined) {
+        url = `${url}&target=${payload.target}`
       }
     }
     axios({url: url, method:"GET", headers:getters.authHeader})

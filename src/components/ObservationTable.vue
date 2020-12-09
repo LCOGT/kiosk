@@ -52,7 +52,7 @@
       <tbody>
         <tr
           :key="observation.id"
-          v-for="observation in observations"
+          v-for="observation in observations.results"
         >
           <td><a :href="'https://observe.lco.global/requestgroups/'+observation.id" target="_blank">{{observation.requests[0].configurations[0].target.name}}</a></td>
           <td :title="observation.state"><i class='far' v-bind:class="statusIcon(observation.state)"></i>
@@ -67,16 +67,16 @@
       </tbody>
     </table>
     <div class="field is-grouped">
-      <p class="control" v-if="prev_obs">
-        <button @click="$emit('getobservations', false, true)" class="button">
+      <p class="control" v-if="observations.previous">
+        <button v-on:click="getObservations({'prev':observations.previous})" class="button">
         <span class="icon is-small">
           <i class="far fa-backward"></i>
         </span>
         <span>Previous</span>
       </button>
       </p>
-      <p class="control" v-if="next_obs">
-        <button @click="$emit('getobservations', true, false)" class="button">
+      <p class="control" v-if="observations.next">
+        <button v-on:click="getObservations({'next':observations.next})" class="button">
           <span>Next</span>
           <span class="icon is-small">
             <i class="far fa-forward"></i>
@@ -84,7 +84,7 @@
         </button>
       </p>
       <div class="control">
-        <a class="button" v-on:click="$emit('getobservations', false, false)">
+        <a class="button" v-on:click="getObservations()">
           <i class="far fa-redo"></i>
         </a>
       </div>
@@ -99,7 +99,7 @@
           >
         </div>
         <div class="control">
-          <a class="button is-info" v-on:click="$emit('getobservations', false, false, target_name)">
+          <a class="button is-info" v-on:click="getObservations({'target':target_name})">
             <i class="far fa-search"></i>
           </a>
         </div>
@@ -128,14 +128,7 @@ export default {
     }
   },
   computed: {
-    largeUrl: function() {
-        if (this.image) {
-          return `https://thumbnails.lco.global/${this.image.frameid}/?width=4000&height=4000&color=${this.image.iscolour}`;
-        } else {
-          return '';
-        }
-      },
-      ...mapState({ observations: state => state.user.observations.results,
+    ...mapState({ observations: state => state.user.observations,
                     archive_token: state => state.user.profile.archive}),
     ...mapGetters(["isAuthenticated", "authHeader","archiveHeader", "getProfile", "getMode", "getInfo", "getError"])
   },
@@ -147,6 +140,9 @@ export default {
                   'PENDING': 'fa-clock',
                   'CANCELED': 'fa-ban'};
       return icon[state]
+    },
+    getObservations(payload) {
+      this.$store.dispatch(USER_OBSERVATIONS, payload)
     },
     getframeid(observation){
       let that = this;
