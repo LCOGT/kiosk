@@ -4,11 +4,6 @@ import axios from 'axios'
 import store from "./store";
 import './../node_modules/bulma/css/bulma.css';
 
-const token = localStorage.getItem('lco_token')
-if (token) {
-  axios.defaults.headers.common['Authorization'] = 'Token '+ token;
-}
-
 require("typeface-roboto")
 require("typeface-lato")
 

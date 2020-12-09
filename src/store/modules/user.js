@@ -29,7 +29,7 @@ const actions = {
   [USER_REQUEST]: ({ commit, dispatch }) => {
     commit(USER_REQUEST);
     var headers = {'Authorization' : 'Token '+ localStorage.getItem('user-token')};
-    axios({url: 'https://observe.lco.global/api/profile', method:"GET", headers: headers})
+    axios({url: 'https://observe.lco.global/api/profile/', method:"GET", headers: headers})
       .then(resp => {
         var proposals = new Array;
 
