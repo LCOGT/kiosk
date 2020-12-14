@@ -111,7 +111,7 @@ export function  buildRequest(observation){
   var data = {
       "name": "kiosk-"+observation.name,
       "proposal": observation.proposal,
-      "ipp_value": 1.05,
+      "ipp_value": 1.0,
       "operator": "SINGLE",
       "observation_type": "NORMAL",
       "requests": [request],

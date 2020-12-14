@@ -40,7 +40,7 @@ const actions = {
         }
         var default_proposal;
         if (proposals.length == 1){
-          default_proposal = proposals[0]
+          default_proposal = proposals[0].value
         }
         var data = {
           'user':resp.data.username,
@@ -49,6 +49,7 @@ const actions = {
        }
        commit(USER_SUCCESS, data);
        dispatch(USER_OBSERVATIONS);
+       commit('modeStart')
       })
       .catch((err) => {
         console.log(err)
