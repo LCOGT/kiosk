@@ -1,8 +1,15 @@
-import { USER_REQUEST, USER_OBSERVATIONS, USER_OBS_SUCCESS, USER_ERROR, USER_SUCCESS } from "../actions/user";
+import { USER_REQUEST, USER_OBSERVATIONS, USER_OBS_SUCCESS, USER_ERROR, USER_SUCCESS, USER_PROPOSALS, USER_PROPOSAL_SUCCESS } from "../actions/user";
 import Vue from "vue";
 import { AUTH_LOGOUT } from "../actions/auth";
 import apiCall from "utils/api";
 import axios from 'axios';
+
+const instrument_name = {
+'0M4-SCICAM-SBIG' : '0.4m Camera',
+'2M0-SCICAM-MUSCAT' : '2m MuSCAT3 camera',
+'1M0-SCICAM-SINISTRO' : '1m Camera',
+'2M0-SCICAM-SPECTRAL' : '2m Camera',
+};
 
 const state = { status: "", profile: {}, observations:{}, mode:'', messages:{'error':'','info':''} };
 
@@ -11,6 +18,8 @@ const getters = {
   getProfile: state => state.profile,
   proposalsLoaded: state => !!state.profile.proposals,
   defaultProposal: state => state.profile.default_proposal,
+  defaultAperture: state => state.profile.aperture,
+  getApertures: state => state.profile.apertures,
   getInfo: state => state.messages.info,
   getError: state => state.messages.error,
   currentProposalName (state) {
@@ -49,6 +58,7 @@ const actions = {
        }
        commit(USER_SUCCESS, data);
        dispatch(USER_OBSERVATIONS);
+       dispatch(USER_PROPOSALS);
        commit('modeStart')
       })
       .catch((err) => {
@@ -81,6 +91,32 @@ const actions = {
         // if resp is unauthorized, logout, to
         dispatch(AUTH_LOGOUT);
       });
+  },
+  [USER_PROPOSALS]: ({ commit, dispatch, getters }) => {
+    commit(USER_PROPOSALS);
+    var url = 'https://observe.lco.global/api/proposals/?active=True&limit=100';
+    axios({url: url, method:"GET", headers:getters.authHeader})
+      .then(resp => {
+        var proposals = new Array;
+        var apertures;
+
+        for (var i=0; i<resp.data.results.length;i++){
+          apertures = [];
+          if (resp.data.results[i].active){
+            for (var j=0; j<resp.data.results[i].timeallocation_set.length;j++){
+              apertures.push(resp.data.results[i].timeallocation_set[j].instrument_type)
+            }
+            proposals.push({'id':resp.data.results[i].id, 'apertures' :[...new Set(apertures)]})
+          }
+        }
+        commit(USER_PROPOSAL_SUCCESS, proposals);
+      })
+      .catch((err) => {
+        console.log(err)
+        commit(USER_ERROR);
+        // if resp is unauthorized, logout, to
+        dispatch(AUTH_LOGOUT);
+      });
   }
 };
 
@@ -95,6 +131,13 @@ const mutations = {
     state.status = "success";
     state.observations = data;
   },
+  [USER_PROPOSALS]: state => {
+    state.status = "requesting proposals"
+  },
+  [USER_PROPOSAL_SUCCESS]: (state, data) => {
+    state.status = "success";
+    state.profile.time = data;
+  },
   [USER_SUCCESS]: (state, data) => {
     state.status = "success";
     state.profile = data;
@@ -106,7 +149,25 @@ const mutations = {
     state.profile = {};
   },
   changeProposal : (state, proposal_id) => {
-    state.profile.default_proposal = proposal_id
+    state.profile.default_proposal = proposal_id;
+    var ap = state.profile.time.find( ({ id }) => id === proposal_id );
+    if (ap.apertures.length == 1) {
+      state.profile.aperture = ap.apertures[0];
+      Vue.set(state.profile, "aperture", state.profile.aperture)
+    }else{
+      Vue.set(state.profile, "aperture", undefined)
+    }
+    const good_apertures = ap.apertures.filter(function(ap){
+      return instrument_name[ap] != undefined
+    });
+    const apertures = good_apertures.map(function(ap){
+      return {'id':ap, 'name':instrument_name[ap] }
+    });
+    // state.profile.apertures = apertures;
+    Vue.set(state.profile, "apertures", apertures);
+  },
+  changeAperture : (state, apertureid) => {
+    state.profile.aperture = apertureid
   },
   resetProposal : state => {
     state.profile.default_proposal = ''
@@ -137,3 +198,7 @@ export default {
   actions,
   mutations
 };
+
+function findInstruments(inst){
+
+}

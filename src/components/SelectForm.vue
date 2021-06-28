@@ -19,6 +19,23 @@
     </div>
   </div>
 
+  <div class="field">
+    <h3>Telescope Size: {{defaultAperture}}</h3>
+    <div class="control" v-show="!getProfile.aperture">
+      <div class="select">
+    <select v-model="apertureid" @change="setAperture">
+    <option disabled value="">Select telescope class</option>
+    <option v-for="aperture in getProfile.apertures"
+      v-bind:value="aperture.name"
+      v-bind:key="aperture.id"
+      >
+      {{aperture.name}}
+    </option>
+    </select>
+  </div>
+  </div>
+  </div>
+
   <div>
     <p>
       Logged in as: <em>{{getProfile.user}}</em> <a v-on:click="logout" class="is-size-7">[log out]</a>
@@ -42,20 +59,31 @@ export default {
     data () {
         return {
           proposalid:'',
+          apertureid:'',
           error: '',
           name:'',
           modes:[{id:'select', 'name':'Suggest a target'},{id:'manual','name':'Manual input'}],
         }
     },
     computed: {
-      ...mapGetters(["isAuthenticated","currentProposalName", "proposalsLoaded", "defaultProposal", "getProfile", "getMode"]),
-      ...mapState({ proposals: state => state.user.profile.proposals })
+      ...mapGetters(["isAuthenticated",
+                     "currentProposalName",
+                     "proposalsLoaded",
+                     "defaultProposal",
+                     "getProfile",
+                     "getMode",
+                     "defaultAperture",
+                     "getApertures"]),
+      ...mapState({ proposals: state => state.user.profile.proposals}),
     },
 
     methods: {
       setProposal() {
         this.$store.commit("changeProposal", this.proposalid);
         this.$store.commit("modeStart")
+      },
+      setAperture() {
+        this.$store.commit("changeAperture", this.apertureid);
       },
       resetProposal() {
         this.proposalid = undefined

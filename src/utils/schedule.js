@@ -88,7 +88,7 @@ export function  buildRequest(observation){
   }
   var config  = [{
         'type': 'EXPOSE',
-        'instrument_type': '0M4-SCICAM-SBIG',
+        'instrument_type': observation.instrument,
         'target': target,
         'constraints': constraints,
         'acquisition_config': {},
@@ -121,7 +121,7 @@ export function  buildRequest(observation){
 
 function setWindows() {
   var start = new Date();
-  if ((start.getMonth() == 5 || start.getMonth == 11) && start.getDate() >= 24){
+  if ((start.getMonth() == 7 || start.getMonth == 1) && start.getDate() >= 24){
     start.setDate(1)
     start.setMonth(start.getMonth()+1)
   }

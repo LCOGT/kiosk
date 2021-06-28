@@ -201,6 +201,7 @@ export default {
       this.submitting = true
       this.submitted = true
       this.observation.proposal = this.$store.getters.defaultProposal
+      this.observation.instrument = this.$store.getters.defaultInstrument
 
       if (!this.observation.name) {
         this.submitting = false
