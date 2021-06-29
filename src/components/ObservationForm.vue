@@ -267,6 +267,12 @@ export default {
       this.observation.desc = ''
     },
     async whatsupObjects (avm) {
+      const telescopes = {'0M4-SCICAM-SBIG' : '0m4',
+          '2M0-SCICAM-MUSCAT' : '2m0',
+          '1M0-SCICAM-SINISTRO' : '1m0',
+          '2M0-SCICAM-SPECTRAL' : '2m0',
+        };
+
       this.clearStatus()
       if (avm=='1.1'){
         this.object_type = 'planet'
@@ -278,6 +284,7 @@ export default {
       var start = new Date();
       var end = new Date();
       var startstamp = start.toISOString().substring(0,19);
+      var telescope = telescopes[this.$store.getters.defaultAperture];
       end.setDate( end.getDate() + 7 );
       var endstamp = end.toISOString().substring(0,19);
       const requestOptions = {
@@ -286,7 +293,7 @@ export default {
             'Content-Type': 'application/json'
           }
         }
-      var url = `https://whatsup.lco.global/range/?start=${startstamp}&aperture=0m4&end=${endstamp}&category=${avm}&format=json`;
+      var url = `https://whatsup.lco.global/range/?start=${startstamp}&aperture=${telescope}&end=${endstamp}&category=${avm}&format=json`;
       const response = await fetch(url, requestOptions)
       var data = await response.json()
       this.objects = data.targets.slice(0,6)

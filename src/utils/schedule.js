@@ -90,8 +90,8 @@ export function  buildRequest(observation){
 
   if (observation.instrument == '2M0-SCICAM-MUSCAT'){
     var conf = {
-          "exposure_time": 33.0,
-          "exposure_count": 10,
+          "exposure_time": configs.filters[0]['exposure'],
+          "exposure_count": 1,
           "mode": "MUSCAT_SLOW",
           "optical_elements": {
               "diffuser_g_position": "out",
@@ -103,10 +103,10 @@ export function  buildRequest(observation){
               "bin_x": 1,
               "bin_y": 1,
               "exposure_mode": "SYNCHRONOUS",
-              "exposure_time_g": 33.0,
-              "exposure_time_r": 31.0,
-              "exposure_time_i": 30.0,
-              "exposure_time_z": 28.7
+              "exposure_time_g": configs.filters[0]['exposure'],
+              "exposure_time_r": configs.filters[0]['exposure'],
+              "exposure_time_i": configs.filters[0]['exposure'],
+              "exposure_time_z": configs.filters[0]['exposure']
           }
       }
       inst_configs.push(conf)
@@ -142,7 +142,7 @@ export function  buildRequest(observation){
     "target": target,
     "configurations": config,
     "windows": [timewindow],
-    "observation_note" : "Serol",
+    "observation_note" : "Kiosk",
     "type":"request"
   }
   var data = {
