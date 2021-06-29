@@ -29,9 +29,19 @@ function buildTarget(observation){
 
 function buildConfigs(observation){
   var configs = Array()
+
+  var telescopes = {'0M4-SCICAM-SBIG' : '0m4',
+      '2M0-SCICAM-MUSCAT' : '2m0',
+      '1M0-SCICAM-SINISTRO' : '1m0',
+      '2M0-SCICAM-SPECTRAL' : '2m0',
+    };
+  configs.telescope = telescopes[observation.instrument];
+  configs.filters = [];
+
+
   if (observation.coords.filters!=undefined && observation.coords.filters.length>0){
     for (var i=0;i<observation.coords.filters.length;i++){
-      configs.push({'filter': observation.coords.filters[i].name,
+      configs.filters.push({'filter': observation.coords.filters[i].name,
                     'exposure': observation.coords.filters[i].exposure})
     }
     return configs
@@ -46,19 +56,19 @@ function buildConfigs(observation){
     'venus' : {'filter':'up', 'exposure':0.1}
   }
   if (observation.name.toLowerCase().substring(0,3) == 'ngc'){
-    configs = [
+    configs.filters = [
       {'filter':'rp', 'exposure':120},
       {'filter':'B', 'exposure':120},
       {'filter':'V', 'exposure':120}
     ]
   } else if (observation.type == 'non_sidereal'){
     try {
-      configs = [planets[observation.name.toLowerCase()]]
+      configs.filters = [planets[observation.name.toLowerCase()]]
     } catch(error) {
-      configs = [{'filter':'u', 'exposure':0.1}]
+      configs.filters = [{'filter':'u', 'exposure':0.1}]
     }
   } else {
-    configs = [
+    configs.filters = [
       {'filter':'rp', 'exposure':90},
       {'filter':'B', 'exposure':90},
       {'filter':'V', 'exposure':90}
@@ -71,21 +81,48 @@ export function  buildRequest(observation){
   var target = buildTarget(observation)
   var configs = buildConfigs(observation)
   var times = setWindows()
-  var constraints = constraints = {
+  var constraints = {
     'max_airmass': 1.6,
     'min_lunar_distance': 30
   }
   var inst_configs = Array();
-  for (var i=0;i<configs.length;i++){
-      var conf = {
-                'exposure_time': configs[i]['exposure'],
-                'exposure_count': 1,
-                'optical_elements': {
-                    'filter': configs[i]['filter']
-                }
-            }
+  console.log(observation)
+
+  if (observation.instrument == '2M0-SCICAM-MUSCAT'){
+    var conf = {
+          "exposure_time": 33.0,
+          "exposure_count": 10,
+          "mode": "MUSCAT_SLOW",
+          "optical_elements": {
+              "diffuser_g_position": "out",
+              "diffuser_r_position": "out",
+              "diffuser_i_position": "out",
+              "diffuser_z_position": "out"
+          },
+          "extra_params": {
+              "bin_x": 1,
+              "bin_y": 1,
+              "exposure_mode": "SYNCHRONOUS",
+              "exposure_time_g": 33.0,
+              "exposure_time_r": 31.0,
+              "exposure_time_i": 30.0,
+              "exposure_time_z": 28.7
+          }
+      }
       inst_configs.push(conf)
+  } else {
+    for (var i=0;i<configs.filters.length;i++){
+        var conf = {
+                  'exposure_time': configs.filters[i]['exposure'],
+                  'exposure_count': 1,
+                  'optical_elements': {
+                      'filter': configs.filters[i]['filter']
+                  }
+              }
+        inst_configs.push(conf)
+    }
   }
+
   var config  = [{
         'type': 'EXPOSE',
         'instrument_type': observation.instrument,
@@ -100,7 +137,7 @@ export function  buildRequest(observation){
     "end": times.end
     }
   var request = {
-    "location":{"telescope_class":"0m4"},
+    "location":{"telescope_class":configs.telescope},
     "constraints":{"max_airmass":2.0},
     "target": target,
     "configurations": config,

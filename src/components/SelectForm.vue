@@ -20,14 +20,14 @@
   </div>
 
   <div class="field">
-    <h3>Telescope Size: {{defaultAperture}}</h3>
-    <div class="control" v-show="!getProfile.aperture">
+    <h3>Telescope Size: {{currentApertureName}}</h3>
+    <p><a v-on:click="resetAperture" v-show="currentApertureName" class="is-size-7">[change]</a></p>
+    <div class="control" v-show="!defaultAperture">
       <div class="select">
     <select v-model="apertureid" @change="setAperture">
     <option disabled value="">Select telescope class</option>
-    <option v-for="aperture in getProfile.apertures"
-      v-bind:value="aperture.name"
-      v-bind:key="aperture.id"
+    <option v-for="aperture in getApertures"
+      v-bind:value="aperture.id"
       >
       {{aperture.name}}
     </option>
@@ -68,6 +68,7 @@ export default {
     computed: {
       ...mapGetters(["isAuthenticated",
                      "currentProposalName",
+                     "currentApertureName",
                      "proposalsLoaded",
                      "defaultProposal",
                      "getProfile",
@@ -87,8 +88,13 @@ export default {
       },
       resetProposal() {
         this.proposalid = undefined
+        this.apertureid = undefined
         this.$store.commit("resetProposal")
         this.$store.commit("modeReset")
+      },
+      resetAperture(){
+        this.apertureid = undefined
+        this.$store.commit("changeAperture", this.apertureid);
       },
       setMode(mode) {
         this.$store.commit(mode)

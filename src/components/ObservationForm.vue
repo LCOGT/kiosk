@@ -201,7 +201,7 @@ export default {
       this.submitting = true
       this.submitted = true
       this.observation.proposal = this.$store.getters.defaultProposal
-      this.observation.instrument = this.$store.getters.defaultInstrument
+      this.observation.instrument = this.$store.getters.defaultAperture
 
       if (!this.observation.name) {
         this.submitting = false
@@ -221,7 +221,7 @@ export default {
         var requestOptions = {
           method: 'POST',
           data: observation,
-          url: 'https://observe.lco.global/api/requestgroups/',
+          url: 'https://observe.lco.global/api/requestgroups/validate/',
           headers: this.$store.getters.authHeader,
         }
         axios(requestOptions)

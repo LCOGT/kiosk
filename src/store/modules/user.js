@@ -32,6 +32,14 @@ const getters = {
         }
     }
   },
+  currentApertureName (state) {
+    if (state.profile.aperture == undefined){
+      return null
+    } else {
+      var name = state.profile.apertures.filter(ap => ap.id == state.profile.aperture);
+      return name[0].name;
+    }
+  }
 };
 
 const actions = {
@@ -167,7 +175,7 @@ const mutations = {
     Vue.set(state.profile, "apertures", apertures);
   },
   changeAperture : (state, apertureid) => {
-    state.profile.aperture = apertureid
+    state.profile.aperture = apertureid;
   },
   resetProposal : state => {
     state.profile.default_proposal = ''
