@@ -21,19 +21,19 @@
 
   <div class="field">
     <h3>Telescope Size: {{currentApertureName}}</h3>
-    <p><a v-on:click="resetAperture" v-show="currentApertureName" class="is-size-7">[change]</a></p>
+    <div v-show="showChangeAperture"><a v-on:click="resetAperture" class="is-size-7">[change]</a></div>
     <div class="control" v-show="!defaultAperture">
       <div class="select">
-    <select v-model="apertureid" @change="setAperture">
-    <option disabled value="">Select telescope class</option>
-    <option v-for="aperture in getApertures"
-      v-bind:value="aperture.id"
-      >
-      {{aperture.name}}
-    </option>
-    </select>
-  </div>
-  </div>
+        <select v-model="apertureid" @change="setAperture">
+          <option disabled value="">Select telescope class</option>
+          <option v-for="aperture in getApertures"
+            v-bind:value="aperture.id"
+            >
+            {{aperture.name}}
+          </option>
+        </select>
+      </div>
+    </div>
   </div>
 
   <div>
@@ -74,7 +74,8 @@ export default {
                      "getProfile",
                      "getMode",
                      "defaultAperture",
-                     "getApertures"]),
+                     "getApertures",
+                     "showChangeAperture"]),
       ...mapState({ proposals: state => state.user.profile.proposals}),
     },
 

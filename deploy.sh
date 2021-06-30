@@ -19,7 +19,7 @@ git commit -m 'deploy'
 # if you are deploying to https://<USERNAME>.github.io
 # git push -f git@github.com:<USERNAME>/<USERNAME>.github.io.git master
 
-# if you are deploying to https://<USERNAME>.github.io/<REPO>
+# if you are deploying to https://zemogle.github.io/kiosk
 git push -f git@github.com:zemogle/kiosk.git master:gh-pages
 
 cd -

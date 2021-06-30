@@ -39,6 +39,13 @@ const getters = {
       var name = state.profile.apertures.filter(ap => ap.id == state.profile.aperture);
       return name[0].name;
     }
+  },
+  showChangeAperture (state){
+    if (state.profile.apertures && state.profile.apertures.length > 1 && state.profile.aperture){
+        return true
+    } else{
+      return false
+    }
   }
 };
 
