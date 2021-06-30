@@ -6,7 +6,11 @@
         Logged in as: <em>{{getProfile.user}}</em> <a v-on:click="logout" class="is-size-7">[log out]</a>
       </p>
 
-    <div class="field">
+    <div class="fa-3x" v-show="!proposalsLoaded">
+        <i class="fas fa-spinner fa-spin"></i>
+    </div>
+
+    <div class="field" v-show="proposalsLoaded">
     <h3 class="is-size-4">Project: {{currentProposalName}}</h3>
     <p><a v-on:click="resetProposal" v-show="currentProposalName" class="is-size-7">[change]</a></p>
     <div class="control" v-show="!defaultProposal">
