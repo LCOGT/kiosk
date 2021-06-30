@@ -175,6 +175,7 @@ const mutations = {
     const good_apertures = ap.apertures.filter(function(ap){
       return instrument_name[ap] != undefined
     });
+    good_apertures.sort();
     const apertures = good_apertures.map(function(ap){
       return {'id':ap, 'name':instrument_name[ap] }
     });
