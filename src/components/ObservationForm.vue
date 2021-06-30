@@ -297,6 +297,7 @@ export default {
       const response = await fetch(url, requestOptions)
       var data = await response.json()
       this.objects = data.targets.slice(0,6)
+      console.log(this.objects);
     },
     selectObject(data){
       this.$store.commit('updateError','')
@@ -307,7 +308,8 @@ export default {
       this.lookedup = true
       this.observation.coords = {
           'ra'  : data.ra,
-          'dec' : data.dec
+          'dec' : data.dec,
+          'filters': data.filters
         }
     },
 
