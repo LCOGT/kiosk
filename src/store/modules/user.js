@@ -5,10 +5,10 @@ import apiCall from "utils/api";
 import axios from 'axios';
 
 const instrument_name = {
-'0M4-SCICAM-SBIG' : '0.4m Camera',
-'2M0-SCICAM-MUSCAT' : '2m MuSCAT3 camera',
-'1M0-SCICAM-SINISTRO' : '1m Camera',
-'2M0-SCICAM-SPECTRAL' : '2m Camera',
+'0M4-SCICAM-SBIG' : '0.4 meter',
+'2M0-SCICAM-MUSCAT' : '2m MuSCAT3',
+'1M0-SCICAM-SINISTRO' : '1 meter',
+'2M0-SCICAM-SPECTRAL' : '2 meter',
 };
 
 const state = { status: "", profile: {}, observations:{}, mode:'', messages:{'error':'','info':''} };
@@ -33,18 +33,22 @@ const getters = {
     }
   },
   currentApertureName (state) {
-    if (state.profile.aperture == undefined){
-      return null
-    } else {
-      var name = state.profile.apertures.filter(ap => ap.id == state.profile.aperture);
-      return name[0].name;
+    return function(){
+      if (state.profile.aperture == undefined){
+        return null
+      } else {
+        var name = state.profile.apertures.filter(ap => ap.id == state.profile.aperture);
+        return name[0].name;
+      }
     }
   },
   showChangeAperture (state){
-    if (state.profile.apertures && state.profile.apertures.length > 1 && state.profile.aperture){
-        return true
-    } else{
-      return false
+    return function(){
+      if (state.profile.apertures && state.profile.apertures.length > 1 && state.profile.aperture){
+          return true
+      } else{
+        return false
+      }
     }
   }
 };
@@ -183,7 +187,8 @@ const mutations = {
     Vue.set(state.profile, "apertures", apertures);
   },
   changeAperture : (state, apertureid) => {
-    state.profile.aperture = apertureid;
+    // state.profile.aperture = apertureid;
+    Vue.set(state.profile, "aperture", apertureid)
   },
   resetProposal : state => {
     state.profile.default_proposal = ''

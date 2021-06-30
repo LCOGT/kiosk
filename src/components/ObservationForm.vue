@@ -201,7 +201,7 @@ export default {
       this.submitting = true
       this.submitted = true
       this.observation.proposal = this.$store.getters.defaultProposal
-      this.observation.instrument = this.$store.getters.defaultAperture
+      this.observation.instrument = this.$store.getters.getProfile.aperture
 
       if (!this.observation.name) {
         this.submitting = false
@@ -297,7 +297,6 @@ export default {
       const response = await fetch(url, requestOptions)
       var data = await response.json()
       this.objects = data.targets.slice(0,6)
-      console.log(this.objects);
     },
     selectObject(data){
       this.$store.commit('updateError','')
