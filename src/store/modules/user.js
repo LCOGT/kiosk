@@ -33,14 +33,12 @@ const getters = {
     }
   },
   currentApertureName (state) {
-    return function(){
       if (state.profile.aperture == undefined){
         return null
       } else {
         var name = state.profile.apertures.filter(ap => ap.id == state.profile.aperture);
         return name[0].name;
       }
-    }
   },
   showChangeAperture (state){
     return function(){
@@ -118,7 +116,6 @@ const actions = {
       .then(resp => {
         var proposals = new Array;
         var apertures;
-
         for (var i=0; i<resp.data.results.length;i++){
           apertures = [];
           if (resp.data.results[i].active){
@@ -129,12 +126,15 @@ const actions = {
           }
         }
         commit(USER_PROPOSAL_SUCCESS, proposals);
+        if (proposals.length == 1) {
+          commit("changeProposal", proposals[0].id)
+        }
       })
       .catch((err) => {
         console.log(err)
         commit(USER_ERROR);
         // if resp is unauthorized, logout, to
-        dispatch(AUTH_LOGOUT);
+        //dispatch(AUTH_LOGOUT);
       });
   }
 };
@@ -219,7 +219,3 @@ export default {
   actions,
   mutations
 };
-
-function findInstruments(inst){
-
-}

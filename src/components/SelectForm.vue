@@ -29,7 +29,7 @@
   </div>
 
   <div class="field" v-show="currentProposalName">
-    <h3>Telescope Size: {{currentApertureName()}}</h3>
+    <h3>Telescope Size: {{currentApertureName}}</h3>
     <div v-show="showChangeAperture()"><a v-on:click="resetAperture" class="is-size-7">[change]</a></div>
     <div class="control" v-show="!getProfile.aperture">
       <div class="select">
