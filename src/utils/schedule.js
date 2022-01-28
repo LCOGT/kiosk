@@ -158,7 +158,7 @@ export function  buildRequest(observation){
 
 function setWindows() {
   var start = new Date();
-  if ((start.getMonth() == 7 || start.getMonth == 1) && start.getDate() >= 24){
+  if ((start.getMonth() == 6 || start.getMonth() == 0) && start.getDate() >= 24){
     start.setDate(1)
     start.setMonth(start.getMonth()+1)
   }
@@ -166,6 +166,5 @@ function setWindows() {
   end.setDate( start.getDate() + 7 );
   start = start.toISOString().substring(0,19);
   end = end.toISOString().substring(0,19);
-
   return {'start' : start, 'end':end}
 }
