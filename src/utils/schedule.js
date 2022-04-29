@@ -78,6 +78,17 @@ function buildConfigs(observation){
 }
 
 export function  buildRequest(observation){
+  console.log(observation)
+  if (observation.object_type == 'moon'){
+    var data = {
+      'data' : {
+          'proposal'  : observation.proposal,
+        },
+      'url'  : 'https://serol.lco.global/api/schedule/moon/'
+    }
+    return data
+  }
+
   var target = buildTarget(observation)
   var configs = buildConfigs(observation)
   var times = setWindows()
@@ -86,7 +97,6 @@ export function  buildRequest(observation){
     'min_lunar_distance': 30
   }
   var inst_configs = Array();
-  console.log(observation)
 
   if (observation.instrument == '2M0-SCICAM-MUSCAT'){
     var conf = {
@@ -145,13 +155,17 @@ export function  buildRequest(observation){
     "observation_note" : "Kiosk",
     "type":"request"
   }
-  var data = {
+  var requestdata = {
       "name": "kiosk-"+observation.name,
       "proposal": observation.proposal,
       "ipp_value": 1.0,
       "operator": "SINGLE",
       "observation_type": "NORMAL",
       "requests": [request],
+  }
+  var data = {
+    'observation' : requestdata,
+    'url'  : 'https://observe.lco.global/api/requestgroups/'
   }
   return data
 }

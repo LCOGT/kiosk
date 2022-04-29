@@ -183,11 +183,10 @@ const mutations = {
     const apertures = good_apertures.map(function(ap){
       return {'id':ap, 'name':instrument_name[ap] }
     });
-    // state.profile.apertures = apertures;
+
     Vue.set(state.profile, "apertures", apertures);
   },
   changeAperture : (state, apertureid) => {
-    // state.profile.aperture = apertureid;
     Vue.set(state.profile, "aperture", apertureid)
   },
   resetProposal : state => {
@@ -210,6 +209,9 @@ const mutations = {
   },
   updateError: (state, msg) => {
     state.messages.error = msg
+  },
+  clearError: (state) => {
+    state.messages.error = ''
   }
 };
 

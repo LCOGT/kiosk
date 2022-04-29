@@ -89,6 +89,7 @@ export default {
       },
       setAperture() {
         this.$store.commit("changeAperture", this.apertureid);
+        this.$store.commit("clearError")
       },
       resetProposal() {
         this.proposalid = undefined

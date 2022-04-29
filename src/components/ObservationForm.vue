@@ -9,7 +9,7 @@
             <button v-on:click="whatsupObjects(item.avm)" class="button">{{ item.name }}</button>
           </div>
         </div>
-          <div v-if="object_type === 'planet'">
+          <div v-if="object_type == 'planet'">
             <p>Select a planet</p>
             <div class="buttons">
             <div v-for="item in planets">
@@ -17,6 +17,9 @@
             </div>
           </div>
         </div>
+        <div v-if="isMoon">
+          <p><i class="fad fa-moon"></i> We will schedule 4 images of the Moon in the next 2 weeks.</p>
+      </div>
       </div>
 
       <div class="columns is-multiline">
@@ -75,7 +78,7 @@
       class="pending-message"
     ><i class="fas fa-spinner fa-spin"></i> Sending to scheduler</p>
     <p
-      v-if="getError && submitted"
+      v-if="getError && (submitted || preflight)"
       class="error-message"
     ><i class="fad fa-exclamation-triangle"></i>{{getError}}</p>
     <p
@@ -85,7 +88,7 @@
 
     <div class="field is-grouped">
       <div class="control">
-        <button class="button  is-primary" v-on:click="handleSubmit">Submit</button>
+        <button class="button  is-primary" v-on:click="handleSubmit" :disabled='submitDisabled'>Submit</button>
       </div>
       <div class="control">
         <button class="button  is-secondary" v-on:click="reset">Reset</button>
@@ -106,6 +109,7 @@ export default {
     return {
       submitted: false,
       submitting: false,
+      preflight: false,
       observation: {
         name: '',
         coords: '',
@@ -114,6 +118,7 @@ export default {
       },
       object_name:'',
       object_types: [
+        {"name": "Moon", "avm":"1.4" },
         {"name": "Planet", "avm":"1.1" },
         {"name":"Galaxy","avm":"5"},
         {"name":"Star Cluster", "avm":"3.6.4"},
@@ -123,7 +128,7 @@ export default {
       objects: [],
       success: false,
       lookedup:false,
-      planets: ['mercury','venus','mars','jupiter','saturn','uranus','neptune']
+      planets: ['mars','jupiter','saturn','uranus']
     }
   },
   computed: {
@@ -133,6 +138,24 @@ export default {
       '4':'fad fa-smoke',
       '3.6.4':'fas fa-stars'}
       return icons[this.object_type]
+    },
+    isMoon(){
+      if (this.object_type == 'moon'){
+        this.preflight = true;
+        return true
+      } else {
+        this.preflight = false;
+      }
+    },
+    submitDisabled(){
+      if (!this.$store.getters.defaultProposal){
+        return true
+      } else if (this.$store.getters.getProfile.aperture != '0M4-SCICAM-SBIG' && this.object_type == 'moon') {
+        this.$store.commit('updateError',"Moon observations are only available on 0.4m telescopes currently")
+        return true
+      } else {
+        return false
+      }
     },
     ...mapGetters(["isAuthenticated", "currentProposalName","defaultProposal",
                    "getProfile", "getMode", "getInfo", "getError", "authHeader"])
@@ -158,7 +181,7 @@ export default {
       try {
         if (this.planets.includes(this.observation.name.toLowerCase())){
           target_type = 'non_sidereal'
-        } else {
+        }  else {
           const response = await fetch(`https://whatsup.lco.global/target/?name=${this.observation.name}&aperture=0m4`)
           data = await response.json()
         }
@@ -203,7 +226,7 @@ export default {
       this.observation.proposal = this.$store.getters.defaultProposal
       this.observation.instrument = this.$store.getters.getProfile.aperture
 
-      if (!this.observation.name) {
+      if (!this.observation.name && !this.object_type == 'moon') {
         this.submitting = false
         this.$store.commit('updateError','You must type a valid object name')
         return
@@ -216,12 +239,12 @@ export default {
       var data = buildRequest(this.observation)
       await this.addObservation(data)
     },
-    addObservation(observation) {
+    addObservation(data) {
       this.$store.commit('updateError','')
         var requestOptions = {
           method: 'POST',
-          data: observation,
-          url: 'https://observe.lco.global/api/requestgroups/',
+          data: data.observation,
+          url: data.url,
           headers: this.$store.getters.authHeader,
         }
         axios(requestOptions)
@@ -276,6 +299,10 @@ export default {
       this.clearStatus()
       if (avm=='1.1'){
         this.object_type = 'planet'
+        this.objects = null
+        return
+      }if (avm=='1.4'){
+        this.object_type = 'moon'
         this.objects = null
         return
       } else {
