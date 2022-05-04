@@ -29,13 +29,13 @@
   </div>
 
   <div class="field" v-show="currentProposalName">
-    <h3>Telescope Size: {{currentApertureName}}</h3>
+    <h3>Telescope Size: <span v-if="getProfile.aperture">{{getProfile.aperture.name}}</span></h3>
     <div v-show="showChangeAperture()"><a v-on:click="resetAperture" class="is-size-7">[change]</a></div>
-    <div class="control" v-show="!getProfile.aperture">
+    <div class="control" v-show="showSelectAperture()">
       <div class="select">
         <select v-model="apertureid" @change="setAperture">
           <option disabled value="">Select telescope class</option>
-          <option v-for="aperture in getApertures"
+          <option v-for="aperture in getProfile.apertures"
             v-bind:value="aperture.id"
             >
             {{aperture.name}}
@@ -71,24 +71,25 @@ export default {
     computed: {
       ...mapGetters(["isAuthenticated",
                      "currentProposalName",
-                     "currentApertureName",
                      "proposalsLoaded",
                      "defaultProposal",
                      "getProfile",
                      "getMode",
                      "defaultAperture",
                      "getApertures",
-                     "showChangeAperture"]),
+                     "showChangeAperture",
+                     "showSelectAperture",
+                     "getApertureName"]),
       ...mapState({ proposals: state => state.user.profile.proposals}),
+
     },
 
     methods: {
       setProposal() {
-        this.$store.commit("changeProposal", this.proposalid);
-        this.$store.commit("modeStart")
+        this.$store.dispatch("CHANGE_PROPOSAL", this.proposalid);
       },
       setAperture() {
-        this.$store.commit("changeAperture", this.apertureid);
+        this.$store.dispatch("CHANGE_APERTURE", this.apertureid);
         this.$store.commit("clearError")
       },
       resetProposal() {
@@ -99,7 +100,8 @@ export default {
       },
       resetAperture(){
         this.apertureid = undefined
-        this.$store.commit("changeAperture", this.apertureid);
+        this.$store.dispatch("CHANGE_APERTURE", this.apertureid);
+        this.$store.commit("modeReset")
       },
       setMode(mode) {
         this.$store.commit(mode)

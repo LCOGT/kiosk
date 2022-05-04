@@ -1,4 +1,4 @@
-import { USER_REQUEST, USER_OBSERVATIONS, USER_OBS_SUCCESS, USER_ERROR, USER_SUCCESS, USER_PROPOSALS, USER_PROPOSAL_SUCCESS } from "../actions/user";
+import { USER_REQUEST, USER_OBSERVATIONS, USER_OBS_SUCCESS, USER_ERROR, USER_SUCCESS, USER_PROPOSALS, USER_PROPOSAL_SUCCESS, CHANGE_APERTURE, CHANGE_PROPOSAL } from "../actions/user";
 import Vue from "vue";
 import { AUTH_LOGOUT } from "../actions/auth";
 import apiCall from "utils/api";
@@ -11,7 +11,19 @@ const instrument_name = {
 '2M0-SCICAM-SPECTRAL' : '2 meter',
 };
 
-const state = { status: "", profile: {}, observations:{}, mode:'', messages:{'error':'','info':''} };
+const state = {
+          status: "",
+          profile: {
+              aperture:{'id':null,'name':null},
+              apertures:[],
+              proposals:[],
+              time: [],
+              default_proposal:''
+            },
+          observations:{},
+          mode:'',
+          messages:{'error':'','info':''}
+        };
 
 const getters = {
   getMode: state => state.mode,
@@ -22,7 +34,14 @@ const getters = {
   getApertures: state => state.profile.apertures,
   getInfo: state => state.messages.info,
   getError: state => state.messages.error,
-  currentProposalName (state) {
+  getApertureName: (state) => {
+    if (state.profile.aperture != undefined){
+      return state.profile.aperture.name
+    } else {
+      return null
+    }
+  },
+  currentProposalName: (state) => {
     if (state.profile.proposals == undefined){
       return null
     }
@@ -32,19 +51,21 @@ const getters = {
         }
     }
   },
-  currentApertureName (state) {
-      if (state.profile.aperture == undefined){
-        return null
-      } else {
-        var name = state.profile.apertures.filter(ap => ap.id == state.profile.aperture);
-        return name[0].name;
-      }
-  },
   showChangeAperture (state){
     return function(){
-      if (state.profile.apertures && state.profile.apertures.length > 1 && state.profile.aperture){
+      if (state.profile.apertures && state.profile.apertures.length > 1 ){
           return true
       } else{
+        return false
+      }
+    }
+  },
+  showSelectAperture (state){
+    return function(){
+      if (state.mode == '' && (!state.profile.aperture || !state.profile.aperture.id)){
+        console.log('here')
+        return true
+      } else {
         return false
       }
     }
@@ -64,7 +85,7 @@ const actions = {
             proposals.push({'text':resp.data.proposals[i].title,'value':resp.data.proposals[i].id})
           }
         }
-        var default_proposal;
+        var default_proposal = '';
         if (proposals.length == 1){
           default_proposal = proposals[0].value
         }
@@ -76,7 +97,6 @@ const actions = {
        commit(USER_SUCCESS, data);
        dispatch(USER_OBSERVATIONS);
        dispatch(USER_PROPOSALS);
-       commit('modeStart')
       })
       .catch((err) => {
         console.log(err)
@@ -136,6 +156,45 @@ const actions = {
         // if resp is unauthorized, logout, to
         //dispatch(AUTH_LOGOUT);
       });
+  },
+  [CHANGE_PROPOSAL] : ({commit, state}, proposal_id) => {
+    var ap = state.profile.time.find( ({ id }) => id === proposal_id );
+
+    const good_apertures = ap.apertures.filter(function(ap){
+      return instrument_name[ap] != undefined
+    });
+    good_apertures.sort();
+    const apertures = good_apertures.map(function(ap){
+      return {'id':ap, 'name':instrument_name[ap] }
+    });
+
+
+    commit('updateApertures', apertures);
+    commit('setProposal',proposal_id)
+    if (apertures.length == 1) {
+      commit('setAperture', apertures[0]);
+      commit('modeStart')
+    }else{
+      commit('resetAperture')
+      commit('updateApertures', apertures);
+      commit('modeReset');
+    }
+  },
+  [CHANGE_APERTURE] : ({commit, state}, apertureid) =>{
+
+    if (apertureid == undefined){
+      name = undefined;
+    } else {
+      var name = state.profile.apertures.filter(ap => ap.id == apertureid);
+      console.log(name)
+      if (name == []){
+        name = undefined;
+      } else {
+        name = name[0].name
+      }
+    }
+    commit('setAperture', {id: apertureid, name: name});
+    commit('modeStart');
   }
 };
 
@@ -167,27 +226,17 @@ const mutations = {
   [AUTH_LOGOUT]: state => {
     state.profile = {};
   },
-  changeProposal : (state, proposal_id) => {
-    state.profile.default_proposal = proposal_id;
-    var ap = state.profile.time.find( ({ id }) => id === proposal_id );
-    if (ap.apertures.length == 1) {
-      state.profile.aperture = ap.apertures[0];
-      Vue.set(state.profile, "aperture", state.profile.aperture)
-    }else{
-      Vue.set(state.profile, "aperture", undefined)
-    }
-    const good_apertures = ap.apertures.filter(function(ap){
-      return instrument_name[ap] != undefined
-    });
-    good_apertures.sort();
-    const apertures = good_apertures.map(function(ap){
-      return {'id':ap, 'name':instrument_name[ap] }
-    });
-
-    Vue.set(state.profile, "apertures", apertures);
+  setAperture : (state, aperture) => {
+    state.profile.aperture = aperture;
   },
-  changeAperture : (state, apertureid) => {
-    Vue.set(state.profile, "aperture", apertureid)
+  resetAperture : (state) => {
+    state.profile.aperture = {id:null,name:null};
+  },
+  updateApertures : (state, apertures) => {
+    state.profile.apertures = apertures;
+  },
+  setProposal : (state, proposalid) => {
+    state.profile.default_proposal = proposalid;
   },
   resetProposal : state => {
     state.profile.default_proposal = ''

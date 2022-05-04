@@ -33,7 +33,6 @@
 
 <script>
 import { AUTH_REQUEST } from "actions/auth";
-import { changeProposal } from "actions/user";
 import { mapGetters } from "vuex";
 
 export default {
