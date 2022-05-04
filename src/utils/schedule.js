@@ -35,7 +35,7 @@ function buildConfigs(observation){
       '1M0-SCICAM-SINISTRO' : '1m0',
       '2M0-SCICAM-SPECTRAL' : '2m0',
     };
-  configs.telescope = telescopes[observation.instrument];
+  configs.telescope = telescopes[observation.instrument.id];
   configs.filters = [];
 
 
@@ -135,7 +135,7 @@ export function  buildRequest(observation){
 
   var config  = [{
         'type': 'EXPOSE',
-        'instrument_type': observation.instrument,
+        'instrument_type': observation.instrument.id,
         'target': target,
         'constraints': constraints,
         'acquisition_config': {},

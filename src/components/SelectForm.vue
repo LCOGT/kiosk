@@ -45,10 +45,12 @@
     </div>
   </div>
 
+  <div class="pb-2">
     <div class="buttons"  v-show="getMode =='start'">
           <button v-on:click="setMode('modeSelect')" class="button">Suggestions</button>
           <button v-on:click="setMode('modeManual')"  class="button">Catalog LookUp</button>
     </div>
+  </div>
   </div>
 
 </template>

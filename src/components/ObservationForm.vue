@@ -2,25 +2,30 @@
 
   <div id="observation-form" v-if="isAuthenticated">
 
-      <div id="select-form" v-show="getMode == 'select'">
+
+      <div id="select-form" v-show="getMode == 'select'" class="pb-4">
         <p class="is-size-4">Select a type of target</p>
-        <div class="buttons">
-          <div v-for="item in object_types">
-            <button v-on:click="whatsupObjects(item.avm)" class="button">{{ item.name }}</button>
+        <div class="field">
+          <div class="buttons has-addons">
+            <button v-for="item in object_types" v-on:click="whatsupObjects(item.avm)" class="button">
+              {{ item.name }}
+            </button>
           </div>
         </div>
+        <div class="field">
           <div v-if="object_type == 'planet'">
             <p>Select a planet</p>
-            <div class="buttons">
-            <div v-for="item in planets">
-              <button v-on:click="lookUp(name=item)" class="button is-capitalized">{{ item }}</button>
-            </div>
+            <div class="buttons has-addons">
+              <button v-for="item in planets" v-on:click="lookUp(name=item)" class="button is-capitalized">
+                {{ item }}
+              </button>
           </div>
         </div>
+      </div>
         <div v-if="isMoon">
-          <p><i class="fad fa-moon"></i> We will schedule 4 images of the Moon in the next 2 weeks.</p>
+          <p class="pb-2"><i class="fad fa-moon"></i> We will schedule 4 images of the Moon in the next 2 weeks.</p>
       </div>
-      </div>
+
 
       <div class="columns is-multiline">
       <div class="column is-one-third" v-for="item in objects">
@@ -39,6 +44,9 @@
           </div>
         </div>
       </div>
+
+
+    </div>
 
     <div v-show="getMode == 'manual'" class="field is-horizontal">
       <div class="field-label is-normal">
@@ -65,6 +73,8 @@
         </div>
       </div>
     </div>
+
+  <div class="container">
     <div id="object-info" v-if="observation.name && !getError">
       <h3 class="is-size-4 success-message"><i class="fa fa-check"></i> {{observation.name}} selected</h3>
     </div>
@@ -95,6 +105,7 @@
       </div>
     </div>
   </div>
+</div>
 </template>
 
 <script>
@@ -150,7 +161,7 @@ export default {
     submitDisabled(){
       if (!this.$store.getters.defaultProposal){
         return true
-      } else if (this.$store.getters.getProfile.aperture != '0M4-SCICAM-SBIG' && this.object_type == 'moon') {
+      } else if (this.$store.getters.getProfile.aperture.id != '0M4-SCICAM-SBIG' && this.object_type == 'moon') {
         this.$store.commit('updateError',"Moon observations are only available on 0.4m telescopes currently")
         return true
       } else {
@@ -311,7 +322,8 @@ export default {
       var start = new Date();
       var end = new Date();
       var startstamp = start.toISOString().substring(0,19);
-      var telescope = telescopes[this.$store.getters.defaultAperture];
+      var aperture = this.getProfile.aperture.id
+      var telescope = telescopes[aperture];
       end.setDate( end.getDate() + 7 );
       var endstamp = end.toISOString().substring(0,19);
       const requestOptions = {
