@@ -128,9 +128,8 @@ export default {
     }
   },
   computed: {
-    ...mapState({ observations: state => state.user.observations,
-                    archive_token: state => state.user.profile.archive}),
-    ...mapGetters(["isAuthenticated", "authHeader","archiveHeader", "getProfile", "getMode", "getInfo", "getError"])
+    ...mapState({ observations: state => state.user.observations}),
+    ...mapGetters(["isAuthenticated", "authHeader","getProfile", "getMode", "getInfo", "getError"])
   },
   methods: {
     statusIcon(state){
