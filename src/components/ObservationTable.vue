@@ -150,7 +150,7 @@ export default {
       var reqnum = observation.requests[0].id
       that.gettingimg = true
       var url = `https://archive-api.lco.global/frames/?ordering=-id&limit=1&REQNUM=${reqnum}`
-      axios({url:url, method:"GET", headers:this.$store.getters.archiveHeader})
+      axios({url:url, method:"GET", headers:this.$store.getters.authHeader})
           .then( resp => {
           var data = resp.data
           that.image.count = data.count

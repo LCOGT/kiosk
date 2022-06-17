@@ -247,6 +247,10 @@ export default {
         this.$store.commit('updateError','Please select your project')
         return
       }
+      if (this.object_type == 'moon'){
+        this.observation.name = 'Moon'
+        this.observation.object_type = this.object_type
+      }
       var data = buildRequest(this.observation)
       await this.addObservation(data)
     },
@@ -272,17 +276,19 @@ export default {
             }
           })
       .catch((error) => {
-        console.log(error)
-        var req  = error.response.data.requests
-        if (req){
-          var txt = 'There was a problem submitting this request'
-          for(var i=0; i < req.length; i++){
-            if (req[i].non_field_errors){
-              txt = req[i]['non_field_errors'][0]
+        if (error.response) {
+          var req  = error.response.data.requests
+          if (req){
+            var txt = 'There was a problem submitting this request'
+            for(var i=0; i < req.length; i++){
+              if (req[i].non_field_errors){
+                txt = req[i]['non_field_errors'][0]
+              }
             }
+            this.$store.commit('updateError',txt)
           }
-          this.$store.commit('updateError',txt)
         } else {
+          console.log('Error', error.message);
           this.$store.commit('updateError','There was a problem submitting this request')
         }
       })

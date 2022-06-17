@@ -63,7 +63,6 @@ const getters = {
   showSelectAperture (state){
     return function(){
       if (state.mode == '' && (!state.profile.aperture || !state.profile.aperture.id)){
-        console.log('here')
         return true
       } else {
         return false
@@ -89,12 +88,10 @@ const actions = {
         if (proposals.length == 1){
           default_proposal = proposals[0].value
         }
-        var data = {
-          'user':resp.data.username,
-          'default_proposal': default_proposal,
-          'proposals' : proposals
-       }
-       commit(USER_SUCCESS, data);
+       commit(USER_SUCCESS);
+       commit('addUser', resp.data.username)
+       commit('setProposal',default_proposal)
+       commit('setProposals',proposals)
        dispatch(USER_OBSERVATIONS);
        dispatch(USER_PROPOSALS);
       })
@@ -145,9 +142,11 @@ const actions = {
             proposals.push({'id':resp.data.results[i].id, 'apertures' :[...new Set(apertures)]})
           }
         }
-        commit(USER_PROPOSAL_SUCCESS, proposals);
+        commit('updateApertures', apertures);
+        commit(USER_PROPOSAL_SUCCESS);
+        commit('updateTime', proposals);
         if (proposals.length == 1) {
-          commit("changeProposal", proposals[0].id)
+          dispatch(CHANGE_PROPOSAL, proposals[0].id)
         }
       })
       .catch((err) => {
@@ -157,7 +156,7 @@ const actions = {
         //dispatch(AUTH_LOGOUT);
       });
   },
-  [CHANGE_PROPOSAL] : ({commit, state}, proposal_id) => {
+  [CHANGE_PROPOSAL] : ({commit, dispatch, state}, proposal_id) => {
     var ap = state.profile.time.find( ({ id }) => id === proposal_id );
 
     const good_apertures = ap.apertures.filter(function(ap){
@@ -167,7 +166,6 @@ const actions = {
     const apertures = good_apertures.map(function(ap){
       return {'id':ap, 'name':instrument_name[ap] }
     });
-
 
     commit('updateApertures', apertures);
     commit('setProposal',proposal_id)
@@ -214,17 +212,18 @@ const mutations = {
   },
   [USER_PROPOSAL_SUCCESS]: (state, data) => {
     state.status = "success";
-    state.profile.time = data;
   },
   [USER_SUCCESS]: (state, data) => {
     state.status = "success";
-    state.profile = data;
   },
   [USER_ERROR]: state => {
     state.status = "error";
   },
   [AUTH_LOGOUT]: state => {
     state.profile = {};
+  },
+  addUser : (state, user) => {
+    state.profile.user = user
   },
   setAperture : (state, aperture) => {
     state.profile.aperture = aperture;
@@ -235,8 +234,14 @@ const mutations = {
   updateApertures : (state, apertures) => {
     state.profile.apertures = apertures;
   },
+  updateTime : (state, data) => {
+    state.profile.time = data;
+  },
   setProposal : (state, proposalid) => {
     state.profile.default_proposal = proposalid;
+  },
+  setProposals : (state, proposals) => {
+    state.profile.proposals = proposals;
   },
   resetProposal : state => {
     state.profile.default_proposal = ''

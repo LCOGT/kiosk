@@ -23,9 +23,9 @@ const getters = {
   authHeader (state) {
     return { 'Authorization': 'Token '+state.token}
   },
-  archiveHeader (state) {
-    return { 'Authorization': 'Token '+state.archive_token}
-  }
+  // archiveHeader (state) {
+  //   return { 'Authorization': 'Token '+state.archive_token}
+  // }
 };
 
 const actions = {
@@ -38,7 +38,7 @@ const actions = {
           localStorage.setItem('user-token', token) // store the token in localstorage
           commit(AUTH_SUCCESS, token)
           // you have your token, now log in your user :)
-          dispatch(AUTH_ARCHIVE, user)
+          // dispatch(AUTH_ARCHIVE, user)
           resolve(resp)
         })
       .catch(err => {

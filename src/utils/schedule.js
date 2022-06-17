@@ -81,9 +81,10 @@ export function  buildRequest(observation){
   console.log(observation)
   if (observation.object_type == 'moon'){
     var data = {
-      'data' : {
-          'proposal'  : observation.proposal,
-        },
+      'observation':{
+            'proposal'  : observation.proposal,
+            "target_type":"moon"
+      },
       'url'  : 'https://serol.lco.global/api/schedule/moon/'
     }
     return data
