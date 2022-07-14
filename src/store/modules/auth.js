@@ -12,6 +12,7 @@ const state = {
   token: localStorage.getItem("user-token") || "",
   status: "",
   hasLoadedOnce: false,
+  archive_token: localStorage.getItem("archive-token") || "",
 };
 
 const getters = {
@@ -20,7 +21,9 @@ const getters = {
   authHeader (state) {
     return { 'Authorization': 'Token '+state.token}
   },
-
+  archiveHeader (state) {
+    return { 'Authorization': 'Token '+state.archive_token}
+  }
 };
 
 const actions = {
@@ -32,6 +35,8 @@ const actions = {
           const token = resp.data.token
           localStorage.setItem('user-token', token) // store the token in localstorage
           commit(AUTH_SUCCESS, token)
+          // you have your token, now log in your user :)
+          dispatch(USER_REQUEST)
           resolve(resp)
         })
       .catch(err => {

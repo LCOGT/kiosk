@@ -6,7 +6,7 @@
         Logged in as: <em>{{getProfile.user}}</em> <a v-on:click="logout" class="is-size-7">[log out]</a>
       </p>
 
-    <div class="fa-3x" v-show="!proposalsLoaded">
+    <div class="fa-3x" v-show="!getProfile.proposals">
         <i class="fas fa-spinner fa-spin"></i>
     </div>
 
