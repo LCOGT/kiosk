@@ -18,6 +18,10 @@
         v-model="password"
       >
       <p
+        v-if="errorMessage"
+        class="error-message"
+      >{{errorMessage}}</p>
+      <p
         v-if="error && submitting"
         class="error-message"
       >❗Please fill out all required fields</p>
@@ -61,7 +65,7 @@ export default {
       invalidUsername() {
         return this.username === ''
       },
-      ...mapGetters(["isAuthenticated"])
+      ...mapGetters(["isAuthenticated","errorMessage"])
     },
     methods: {
        login: function () {

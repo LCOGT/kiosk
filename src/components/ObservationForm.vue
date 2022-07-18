@@ -23,7 +23,7 @@
         </div>
       </div>
         <div v-if="isMoon">
-          <p class="pb-2"><i class="fad fa-moon"></i> We will schedule 4 images of the Moon in the next 2 weeks.</p>
+          <p class="pb-2"><i class="fad fa-moon"></i> We will schedule 3 images of the Moon in the next 2 weeks.</p>
       </div>
 
 

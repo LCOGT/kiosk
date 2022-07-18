@@ -13,11 +13,13 @@ const state = {
   status: "",
   hasLoadedOnce: false,
   archive_token: localStorage.getItem("archive-token") || "",
+  message:"",
 };
 
 const getters = {
   isAuthenticated: state => !!state.token,
   authStatus: state => state.status,
+  errorMessage: state => state.message,
   authHeader (state) {
     return { 'Authorization': 'Token '+state.token}
   },
@@ -28,10 +30,11 @@ const getters = {
 
 const actions = {
   [AUTH_REQUEST]: ({commit, dispatch}, user) => {
-    return new Promise((resolve, reject) => { // The Promise used for router redirect in login
+    return new Promise(resolve => { // The Promise used for router redirect in login
       commit(AUTH_REQUEST)
       axios({url: 'https://observe.lco.global/api/api-token-auth/', data: user, method: 'POST' })
-        .then(resp => {
+        .then((resp) => {
+          commit('authErrorMsg', '')
           const token = resp.data.token
           localStorage.setItem('user-token', token) // store the token in localstorage
           commit(AUTH_SUCCESS, token)
@@ -39,10 +42,9 @@ const actions = {
           dispatch(USER_REQUEST)
           resolve(resp)
         })
-      .catch(err => {
-        commit(AUTH_ERROR, err)
-        localStorage.removeItem('user-token') // if the request fails, remove any possible user token if possible
-        reject(err)
+      .catch((err) => {
+        commit(AUTH_ERROR)
+        commit('authErrorMsg', err.response.data.non_field_errors[0])
       })
     })
   },
@@ -71,6 +73,9 @@ const mutations = {
   },
   [AUTH_LOGOUT]: state => {
     state.token = "";
+  },
+  authErrorMsg: (state, msg) => {
+    state.message = msg;
   }
 };
 
