@@ -5,7 +5,7 @@ import apiCall from "utils/api";
 import axios from 'axios';
 
 const instrument_name = {
-'0M4-SCICAM-SBIG' : '0.4 meter',
+'0M4-SCICAM-QHY600' : '0.4 meter',
 '2M0-SCICAM-MUSCAT' : '2m MuSCAT3',
 '1M0-SCICAM-SINISTRO' : '1 meter',
 '2M0-SCICAM-SPECTRAL' : '2 meter',

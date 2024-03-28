@@ -161,7 +161,7 @@ export default {
     submitDisabled(){
       if (!this.$store.getters.defaultProposal){
         return true
-      } else if (this.$store.getters.getProfile.aperture.id != '0M4-SCICAM-SBIG' && this.object_type == 'moon') {
+      } else if (this.$store.getters.getProfile.aperture.id != '0M4-SCICAM-QHY600' && this.object_type == 'moon') {
         this.$store.commit('updateError',"Moon observations are only available on 0.4m telescopes currently")
         return true
       } else {
@@ -307,7 +307,7 @@ export default {
       this.observation.desc = ''
     },
     async whatsupObjects (avm) {
-      const telescopes = {'0M4-SCICAM-SBIG' : '0m4',
+      const telescopes = {'0M4-SCICAM-QHY600' : '0m4',
           '2M0-SCICAM-MUSCAT' : '2m0',
           '1M0-SCICAM-SINISTRO' : '1m0',
           '2M0-SCICAM-SPECTRAL' : '2m0',

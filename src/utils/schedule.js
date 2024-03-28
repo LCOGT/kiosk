@@ -30,7 +30,7 @@ function buildTarget(observation){
 function buildConfigs(observation){
   var configs = Array()
 
-  var telescopes = {'0M4-SCICAM-SBIG' : '0m4',
+  var telescopes = {'0M4-SCICAM-QHY600' : '0m4',
       '2M0-SCICAM-MUSCAT' : '2m0',
       '1M0-SCICAM-SINISTRO' : '1m0',
       '2M0-SCICAM-SPECTRAL' : '2m0',
